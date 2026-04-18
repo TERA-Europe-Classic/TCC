@@ -28,9 +28,12 @@ public sealed class StubInterface
 
     public StubClient StubClient { get; }
 
-    public Task InitAsync(bool lfgEnabled, bool chatEnabled, bool playerMenuEnabled)
+    // Matches the upstream 5-arg signature so existing App.xaml.cs / Game.cs
+    // call sites (LfgEnabled, EnablePlayerMenu, EnableProxy, ShowIngameChat,
+    // ChatEnabled) compile unchanged. All args ignored in read-only mode.
+    public Task InitAsync(bool lfgEnabled, bool playerMenuEnabled, bool proxyEnabled, bool showIngameChat, bool chatEnabled)
     {
-        _ = lfgEnabled; _ = chatEnabled; _ = playerMenuEnabled;
+        _ = lfgEnabled; _ = playerMenuEnabled; _ = proxyEnabled; _ = showIngameChat; _ = chatEnabled;
         return Task.CompletedTask;
     }
 

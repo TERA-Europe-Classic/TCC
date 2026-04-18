@@ -16,6 +16,7 @@ using Nostrum.Extensions;
 using Nostrum.WPF.Extensions;
 using TCC.Data;
 using TCC.Interop;
+using TCC.Interop.Proxy;
 using TCC.Notice;
 using TCC.Settings;
 using TCC.UI;

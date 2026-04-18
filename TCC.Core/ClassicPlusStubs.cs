@@ -25,6 +25,65 @@ using TCC.Data.Pc;
 using TCC.Settings.WindowSettings;
 using TCC.UI.Windows;
 
+namespace TCC.Interop
+{
+    // Firebase / Cloud stubs — their classes were deleted with the telemetry
+    // strip. Keep the names resolvable so existing call sites compile; every
+    // method no-ops.
+    public static class Firebase
+    {
+        public static System.Threading.Tasks.Task<bool> RequestWebhookExecution(string webhook, string accountHash)
+        { _ = webhook; _ = accountHash; return System.Threading.Tasks.Task.FromResult(false); }
+        public static System.Threading.Tasks.Task<bool> RegisterWebhook(string accountHash) { _ = accountHash; return System.Threading.Tasks.Task.FromResult(false); }
+        public static void Ping() { }
+    }
+
+    public static class Cloud
+    {
+        public static void SendUsageStats(string region, string server, string accountHash, string version)
+        { _ = region; _ = server; _ = accountHash; _ = version; }
+        public static void Init() { }
+        public static bool UsageStatsEnabled { get; set; }
+    }
+}
+
+namespace TCC.Interop.Proxy
+{
+    // StubMessageParser existed to decode toolbox-pushed packets. With
+    // ClassicPlusSniffer pulling raw encrypted frames from 127.0.0.1:7803
+    // there's nothing to register — every registration call is a no-op.
+    public static class StubMessageParser
+    {
+        public static void Register<T>() where T : class { }
+        public static void RegisterHandler<T>(Action<T> handler) where T : class { _ = handler; }
+    }
+}
+
+namespace TCC.UI.Controls.Chat
+{
+    // FriendMessageDialog was a popup asking "add as friend?" before writing
+    // an RPC. Now stubbed — PlayerMenuViewModel calls its ShowDialog path;
+    // returns null so the caller gracefully skips the write.
+    public class FriendMessageDialog : System.Windows.Window
+    {
+        public FriendMessageDialog(string name) { _ = name; }
+        public string Message { get; set; } = "";
+        public new bool? ShowDialog() => false;
+    }
+}
+
+namespace TCC.UI.Windows
+{
+    // LfgFilterConfigWindow let the user pick LFG level filters before a
+    // RequestListings RPC. Stubbed window so the Settings "Configure filters"
+    // button still compiles; ShowDialog is a no-op.
+    public class LfgFilterConfigWindow : System.Windows.Window
+    {
+        public LfgFilterConfigWindow(object lfgVm) { _ = lfgVm; }
+        public new bool? ShowDialog() => false;
+    }
+}
+
 namespace TCC.Settings.WindowSettings
 {
     public class LfgWindowSettings : WindowSettingsBase
@@ -53,11 +112,16 @@ namespace TCC.Data
         public bool IsExpanded { get; set; }
         public bool IsPopupOpen { get; set; }
         public bool CanApply { get; set; }
+        // `Temp` is checked by ListingTemplateSelector + DataTemplates.xaml.cs
+        // to decide whether the listing is a provisional placeholder. In
+        // read-only mode we never create placeholders; always false.
+        public bool Temp { get; set; }
 
         // Tester.cs builds fake listings; Players + Applicants must exist as
-        // observable collections it can .Add() to.
-        public ObservableCollection<User> Players { get; } = new();
-        public ObservableCollection<User> Applicants { get; } = new();
+        // thread-safe observable collections (so `.ToSyncList()` extension
+        // resolves) that also expose `.Add()` for the debug helpers.
+        public Nostrum.WPF.ThreadSafe.ThreadSafeObservableCollection<User> Players { get; } = new();
+        public Nostrum.WPF.ThreadSafe.ThreadSafeObservableCollection<User> Applicants { get; } = new();
     }
 }
 
@@ -72,7 +136,9 @@ namespace TCC.ViewModels
     {
         public LfgListViewModel(LfgWindowSettings settings) { _ = settings; }
 
-        public ObservableCollection<Data.Listing> Listings { get; } = new();
+        // ThreadSafeObservableCollection so `.ToSyncList()` resolves without
+        // editing LfgMessage.cs FindListing.
+        public Nostrum.WPF.ThreadSafe.ThreadSafeObservableCollection<Data.Listing> Listings { get; } = new();
 
         public void EnqueueRequest(uint leaderId, uint serverId) { _ = leaderId; _ = serverId; }
         public void EnqueueListRequest() { }
@@ -91,8 +157,13 @@ namespace TCC.UI.Windows
     /// </summary>
     public class LfgListWindow : TccWindow
     {
-        public LfgListWindow(ViewModels.LfgListViewModel vm) { _ = vm; }
-        public LfgListWindow() { }
+        // TccWindow's only ctor is `protected TccWindow(bool canClose)`.
+        // Pass false so the chromed window can't be closed independently if
+        // something in the codebase does manage to instantiate this stub
+        // (shouldn't, WindowManager.LfgListWindow is set but ShowWindow is
+        // never reached in normal flow).
+        public LfgListWindow(ViewModels.LfgListViewModel vm) : base(false) { _ = vm; }
+        public LfgListWindow() : base(false) { }
         public new void ShowWindow() { /* no-op */ }
     }
 }
