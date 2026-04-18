@@ -1,0 +1,9 @@
+<!-- Classic+ read-only stub: ApplyBody was the LFG applicant chat body.
+     LFG is read-only stripped, so this renders nothing. Kept only so
+     DataTemplates.xaml ApplyBody key and MessageBodyDataTemplateSelector
+     continue to compile. -->
+<UserControl x:Class="TCC.UI.Controls.Chat.ApplyBody"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <Grid />
+</UserControl>
