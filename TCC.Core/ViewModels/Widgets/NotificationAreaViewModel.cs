@@ -1,6 +1,5 @@
 ﻿using System.Collections.Concurrent;
 using System.Linq;
-using System.Threading.Tasks;
 using System.Windows.Threading;
 using JetBrains.Annotations;
 using Nostrum.WPF.ThreadSafe;
@@ -35,20 +34,16 @@ public class NotificationAreaViewModel : TccWindowViewModel
 
     private void OnNewConnection(Server srv)
     {
+        // Classic+ mirror socket only replays session-key frames on connect;
+        // C_LOGIN_ARBITER is never re-delivered for a mid-session attach.
+        // The upstream 10s watchdog that flipped this notification to
+        // "Connection timed out" therefore always fired, spooking users even
+        // though the TCP link and packet stream were healthy. Drop the
+        // watchdog — Sniffer.EndConnection still raises the real disconnect
+        // path, which is what we actually care about.
         Enqueue("TCC", SR.ConnectedToServer(srv.Name), NotificationType.Success,
             template: NotificationTemplate.Progress,
             forcedId: 10241024);
-
-        Task.Delay(10000).ContinueWith(_ =>
-        {
-            var notif = GetNotification<ProgressNotificationInfo>(10241024);
-            if (notif == null) return;
-            notif.Message = "Connection timed out. Reconnect or restart TCC if the issue persists.";
-            notif.NotificationType = NotificationType.Warning;
-            notif.Dispose(20000);
-
-        });
-        //Log.N("TCC", SR.ConnectedToServer(srv.Name), NotificationType.Success, forcedId: 10241024);
     }
 
     private void OnLoginArbiter(C_LOGIN_ARBITER obj)
