@@ -1,24 +1,18 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<!--
+  Classic+ read-only fork: the upstream POST_BUILD packaged TCC as a
+  tera-toolbox module (index.js + module.json + manifest-generator.js)
+  so Foglio could run TCC inside his toolbox. Classic+ has its own
+  ClassicPlusSniffer (127.0.0.1:7803) and never loads as a module, so
+  all of that is dead weight. Keep the empty csproj to preserve the
+  solution topology; remove the PostBuildEvent that referenced the
+  hardcoded X:\tools\manifest-generator.js.
+-->
+<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <TargetFramework>net8</TargetFramework>
     <LangVersion>12</LangVersion>
     <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
     <PreserveCompilationContext>false</PreserveCompilationContext>
     <Configurations>Debug;Release;DebugToolbox</Configurations>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
-    <PostBuildEvent>
-		del "$(SolutionDir)\release\*.xml"
-		del "$(SolutionDir)\release\*.dev.json"
-		xcopy $(SolutionDir)\TCC.Core\Module\index.js $(SolutionDir)\release\ /y /i
-		xcopy $(SolutionDir)\TCC.Core\Module\module.json $(SolutionDir)\release\ /y /i
-		xcopy $(SolutionDir)\TCC.Core\Module\ $(SolutionDir)\release\ /y /s
-		node X:\tools\manifest-generator.js $(SolutionDir)\release\
-</PostBuildEvent>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='DebugToolbox|AnyCPU'">
-    <PostBuildEvent>
-      xcopy $(SolutionDir)\TCC.Core\Module\ "$(TOOLBOX_TCC_PATH)" /y /s
-    </PostBuildEvent>
   </PropertyGroup>
 </Project>
