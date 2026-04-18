@@ -34,8 +34,13 @@ namespace TCC.Interop
     {
         public static System.Threading.Tasks.Task<bool> RequestWebhookExecution(string webhook, string accountHash)
         { _ = webhook; _ = accountHash; return System.Threading.Tasks.Task.FromResult(false); }
-        public static System.Threading.Tasks.Task<bool> RegisterWebhook(string accountHash) { _ = accountHash; return System.Threading.Tasks.Task.FromResult(false); }
+        // Game.cs passes (url, bool, accountHash); the original library had a
+        // multi-arg overload. Stubbed to no-op.
+        public static System.Threading.Tasks.Task<bool> RegisterWebhook(string webhookUrl, bool something, string accountHash)
+        { _ = webhookUrl; _ = something; _ = accountHash; return System.Threading.Tasks.Task.FromResult(false); }
         public static void Ping() { }
+        // Called from App.xaml.cs shutdown + GlobalExceptionHandler + Game.OnDisconnected.
+        public static void Dispose() { }
     }
 
     public static class Cloud
@@ -52,10 +57,28 @@ namespace TCC.Interop.Proxy
     // StubMessageParser existed to decode toolbox-pushed packets. With
     // ClassicPlusSniffer pulling raw encrypted frames from 127.0.0.1:7803
     // there's nothing to register — every registration call is a no-op.
+    // Events are exposed so Game.cs += handler calls compile; they never fire.
     public static class StubMessageParser
     {
         public static void Register<T>() where T : class { }
         public static void RegisterHandler<T>(Action<T> handler) where T : class { _ = handler; }
+
+        public static event Action<bool>? SetUiModeEvent;
+        public static event Action<bool>? SetChatModeEvent;
+        public static event Action<string, uint, string>? HandleChatMessageEvent;
+        public static event Action<string, uint, string, bool>? HandleTranslatedMessageEvent;
+        public static event Action<TeraPacketParser.Message>? HandleRawPacketEvent;
+
+        // Reference event backing fields so the compiler doesn't warn about
+        // unused events (they are never raised in read-only mode).
+        static StubMessageParser()
+        {
+            _ = SetUiModeEvent;
+            _ = SetChatModeEvent;
+            _ = HandleChatMessageEvent;
+            _ = HandleTranslatedMessageEvent;
+            _ = HandleRawPacketEvent;
+        }
     }
 }
 
