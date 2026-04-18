@@ -1,0 +1,9 @@
+<!-- Classic+ read-only stub: LfgBody rendered in-chat LFG announcements.
+     LFG is stripped, so this renders nothing. Kept only so the
+     DataTemplates.xaml LfgBody DataTemplate and the
+     MessageBodyDataTemplateSelector continue to resolve. -->
+<UserControl x:Class="TCC.UI.Controls.Chat.LfgBody"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <Grid />
+</UserControl>
