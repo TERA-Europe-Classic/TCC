@@ -9,27 +9,15 @@ namespace TCC.Interop;
 
 public static class Discord
 {
-    public static async void FireWebhook(string webhook, string message, string usernameOverride, string accountHash)
+    // Classic+ read-only fork: FireWebhook is a no-op.
+    // The upstream implementation gated outbound Discord calls behind Firebase
+    // (a Google Cloud function registered by the user). Firebase.cs was deleted
+    // as part of the strip-everything-non-read-only pass, so this method can't
+    // execute anyway. Kept as a stub so existing call sites (notifier settings,
+    // Discord-integration menu items) still compile.
+    public static void FireWebhook(string webhook, string message, string usernameOverride, string accountHash)
     {
-        if (!await Firebase.RequestWebhookExecution(webhook, accountHash)) return;
-
-        try
-        {
-            using var client = MiscUtils.GetDefaultHttpClient();
-            client.DefaultRequestHeaders.Add(HttpRequestHeader.ContentType.ToString(), "application/json");
-
-            var req = new HttpRequestMessage(HttpMethod.Post, webhook)
-            {
-                Content = JsonContent.Create(new { content = message, username = usernameOverride, avatar_url = "http://i.imgur.com/8IltuVz.png" })
-            };
-
-            await client.SendAsync(req);
-        }
-        catch (Exception e)
-        {
-            Log.N("TCC Discord notifier", "Failed to send Discord notification.", NotificationType.Error);
-            Log.F($"Failed to execute webhook: {e}");
-        }
-
+        // intentional no-op
+        _ = webhook; _ = message; _ = usernameOverride; _ = accountHash;
     }
 }

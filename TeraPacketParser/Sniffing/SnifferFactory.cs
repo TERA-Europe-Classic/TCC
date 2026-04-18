@@ -1,21 +1,17 @@
-﻿using TeraPacketParser.Analysis;
-using TeraPacketParser.TeraCommon.Sniffing;
+﻿using TeraPacketParser.TeraCommon.Sniffing;
 
 namespace TeraPacketParser.Sniffing;
 
 public static class SnifferFactory
 {
     /// <summary>
-    /// Creates a new <see cref="ITeraSniffer"/> based on current settings.
+    /// Classic+ is a strictly read-only, mirror-socket build. The pcap and
+    /// Toolbox-RPC sniffers are gone; all captures flow through the
+    /// ClassicPlusSniffer (127.0.0.1:7803, see ClassicPlusSniffer.cs for the
+    /// protocol). Both overloads exist to stay source-compatible with any
+    /// legacy call sites that still pass CaptureMode / toolboxMode.
     /// </summary>
-    /// <returns>a <see cref="TeraSniffer"/> or <see cref="ToolboxSniffer"/> based on <see cref="CaptureMode"/> and ToolboxMode</returns>
-    public static ITeraSniffer Create(CaptureMode mode, bool toolboxMode)
-    {
-        return (mode, toolboxMode) switch
-        {
-            (CaptureMode.Npcap,      false) => new TeraSniffer(true,  PacketAnalyzer.ServerDatabase.GetServersByIp()),
-            (CaptureMode.RawSockets, false) => new TeraSniffer(false, PacketAnalyzer.ServerDatabase.GetServersByIp()),
-            _ => new ToolboxSniffer()
-        };
-    }
+    public static ITeraSniffer Create() => new ClassicPlusSniffer();
+
+    public static ITeraSniffer Create(CaptureMode mode, bool toolboxMode) => new ClassicPlusSniffer();
 }

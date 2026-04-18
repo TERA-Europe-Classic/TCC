@@ -1,71 +1,38 @@
-﻿using System.Threading.Tasks;
-using TCC.Utils;
+// Classic+ read-only fork: no-op compatibility shim.
+//
+// The upstream StubInterface/StubClient pair brokered every outbound write TCC
+// ever made — LFG RPCs, group-window buttons, player-menu actions, chat-link
+// replay, broker accept/decline, slash-command dispatch, and so on. DESIGN.md
+// §"TCC write paths to delete" enumerates all of it.
+//
+// This shim preserves the full call-site API surface so existing TCC.Core
+// code compiles without editing dozens of files, while guaranteeing zero
+// outbound RPC at runtime: every method is a no-op, every availability flag
+// is false. UI bindings like `ShowLeaveButton => Formed &&
+// StubInterface.Instance.IsStubAvailable` therefore auto-hide write-only
+// buttons without any view-model edits.
+
+using System.Threading.Tasks;
 
 namespace TCC.Interop.Proxy;
 
-public class StubInterface
+public sealed class StubInterface
 {
-    private static StubInterface? _instance;
-    public static StubInterface Instance => _instance ?? new StubInterface();
+    public static StubInterface Instance { get; } = new();
 
-    public readonly StubClient StubClient;
-    private readonly RpcServer2 _stubServer;
-    private readonly StubMessageParser _messageParser;
+    private StubInterface() { StubClient = new StubClient(); }
 
-    public bool IsFpsModAvailable { get; set; }
-    public bool IsStubAvailable { get; private set; }
-    public bool IsConnected => _stubServer.Connected;
+    public bool IsStubAvailable => false;
+    public bool IsFpsModAvailable => false;
+    public bool IsConnected => false;
 
-    private StubInterface()
+    public StubClient StubClient { get; }
+
+    public Task InitAsync(bool lfgEnabled, bool chatEnabled, bool playerMenuEnabled)
     {
-        _instance = this;
-
-        _stubServer = new RpcServer2();
-        StubClient = new StubClient();
-        _messageParser = new StubMessageParser();
-
+        _ = lfgEnabled; _ = chatEnabled; _ = playerMenuEnabled;
+        return Task.CompletedTask;
     }
 
-    public async Task InitAsync(bool useLfg, bool enablePlayerMenu, bool enableProxy, bool showIngameChat, bool tccChatEnabled)
-    {
-        _stubServer.Stop();
-
-        _stubServer.RequestReceived += _messageParser.HandleRequest;
-        _stubServer.ResponseReceived += _messageParser.HandleResponse;
-        _stubServer.ConnectionChanged += OnStubConnectionChanged;
-
-        if (!enableProxy) return;
-        IsStubAvailable = await StubClient.PingStub();
-        if (!IsStubAvailable)
-        {
-            Log.F("Stub not found");
-            Log.N("tcc-stub", 
-                "Failed to connect to tcc-stub. Some functionalities will be unavailable.",
-                NotificationType.Warning
-                );
-            return;
-        }
-        StubClient.Initialize(useLfg, enablePlayerMenu, enableProxy, showIngameChat, tccChatEnabled);
-        _stubServer.Start();
-        IsFpsModAvailable = await StubClient.GetIsModAvailable("fps-utils") || await StubClient.GetIsModAvailable("fps-manager");
-        Log.Chat("Successfully connected to tcc-stub.");
-
-    }
-
-    private void OnStubConnectionChanged(bool connected)
-    {
-        if(!connected)
-        {
-            IsStubAvailable = false;
-            Log.Chat("tcc-stub disconnected.");
-        }
-    }
-
-    public void Disconnect()
-    {
-        _stubServer.Stop();
-        _stubServer.RequestReceived -= _messageParser.HandleRequest;
-        _stubServer.ResponseReceived -= _messageParser.HandleResponse;
-        _stubServer.ConnectionChanged -= OnStubConnectionChanged;
-    }
+    public void Disconnect() { /* no-op */ }
 }

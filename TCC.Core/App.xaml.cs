@@ -16,8 +16,6 @@ using Nostrum.Extensions;
 using Nostrum.WPF.Extensions;
 using TCC.Data;
 using TCC.Interop;
-using TCC.Interop.Proxy;
-using TCC.Loader;
 using TCC.Notice;
 using TCC.Settings;
 using TCC.UI;
@@ -279,23 +277,11 @@ public partial class App
 
     private static void LoadModules()
     {
-        BaseDispatcher.Invoke(() =>
-        {
-            try
-            {
-                ModuleLoader.LoadModules(BasePath);
-            }
-            catch (FileLoadException fle)
-            {
-                TccMessageBox.Show("TCC module loader", SR.ErrorWhileLoadingModule(fle.FileName), MessageBoxButton.OK, MessageBoxImage.Error);
-                Close();
-            }
-            catch (FileNotFoundException fnfe)
-            {
-                TccMessageBox.Show("TCC module loader", SR.ErrorWhileLoadingModule(Path.GetFileName(fnfe.FileName)), MessageBoxButton.OK, MessageBoxImage.Error);
-                Close();
-            }
-        });
+        // Classic+ read-only fork: TCC.Modules (the closed "memes" plugin set)
+        // and TCC.Loader are no longer referenced. The module-discovery path
+        // existed to load optional class-specific widgets from a sibling repo;
+        // without those there's nothing to load here. Kept as a no-op to
+        // preserve call sites in App startup.
     }
 
     #region Dispatchers

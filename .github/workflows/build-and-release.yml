@@ -1,0 +1,85 @@
+name: Build TCC
+
+on:
+  push:
+    branches: [ "main" ]
+    tags:
+      - "v*.*.*"
+  pull_request:
+    branches: [ "main" ]
+  workflow_dispatch:
+    inputs:
+      create_release:
+        description: 'Create a GitHub Release from this run'
+        required: false
+        default: false
+        type: boolean
+
+jobs:
+  build:
+    runs-on: windows-latest
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+      with:
+        submodules: recursive
+        fetch-depth: 0
+
+    - name: Install .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: '8.0.x'
+
+    - name: Setup MSBuild
+      uses: microsoft/setup-msbuild@v2
+
+    # Dragablz (submodule at dependencies/Dragablz/) targets .NET Framework 4.5,
+    # which requires the Developer Pack. Windows-latest runners include it.
+    - name: Build Dragablz (dependency)
+      run: msbuild dependencies\Dragablz\Dragablz\Dragablz.net45.csproj /p:Configuration=Release /p:OutputPath=bin\Release_net45\
+
+    - name: Restore dependencies
+      run: dotnet restore TCC.sln
+
+    - name: Build solution
+      run: dotnet build TCC.sln --configuration Release --no-restore
+
+    - name: Publish TCC
+      run: dotnet publish TCC.Core/TCC.Core.csproj --configuration Release --framework net8-windows --self-contained false --output ./publish/TCC
+
+    - name: Upload artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: TCC-Release-${{ github.sha }}
+        path: ./publish/TCC/
+        retention-days: 7
+
+  release:
+    needs: build
+    runs-on: windows-latest
+    if: startsWith(github.ref, 'refs/tags/v') || (github.event_name == 'workflow_dispatch' && inputs.create_release)
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+
+    - name: Download artifacts
+      uses: actions/download-artifact@v4
+      with:
+        path: ./downloaded-artifacts/
+
+    - name: Create ZIP archive
+      run: |
+        $tag = "${{ github.ref_name }}"
+        Compress-Archive -Path ./downloaded-artifacts/*/* -DestinationPath "TCC-$tag.zip"
+
+    - name: Create Release
+      uses: softprops/action-gh-release@v1
+      with:
+        files: TCC-${{ github.ref_name }}.zip
+        draft: false
+        prerelease: false
+        generate_release_notes: true
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
