@@ -1,5 +1,11 @@
 name: Build TCC
 
+# The release job uses softprops/action-gh-release which calls the
+# POST /repos/:owner/:repo/releases endpoint — that requires `contents:
+# write`. GitHub org repos default to read-only; declare it explicitly.
+permissions:
+  contents: write
+
 on:
   push:
     branches: [ "main" ]
