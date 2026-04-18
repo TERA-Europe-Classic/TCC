@@ -47,7 +47,7 @@ public partial class RhombSkillEffectControl : INotifyPropertyChanged
         // Classic+: collapse when the underlying Skill is blank (apex
         // skills missing from v100.02's skill DB). Matches the logic in
         // SkillControlBase for bare Cooldown bindings.
-        if (string.IsNullOrEmpty(_context.Cooldown.Skill?.IconName))
+        if (string.IsNullOrEmpty(_context.Cooldown.Skill.IconName))
         {
             Visibility = Visibility.Collapsed;
             return;

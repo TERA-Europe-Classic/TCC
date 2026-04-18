@@ -80,7 +80,7 @@ public class SkillControlBase : UserControl, INotifyPropertyChanged
         // for apex skills on v100.02 which stripped them server-side.
         // Hide the tile so the class cooldown window doesn't show empty
         // rhombs/circles for skills that don't exist on this build.
-        if (string.IsNullOrEmpty(Context.Skill?.IconName))
+        if (string.IsNullOrEmpty(Context.Skill.IconName))
         {
             Visibility = Visibility.Collapsed;
             return;
