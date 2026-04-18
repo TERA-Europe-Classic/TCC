@@ -34,10 +34,13 @@ jobs:
     - name: Setup MSBuild
       uses: microsoft/setup-msbuild@v2
 
-    # Dragablz (submodule at dependencies/Dragablz/) targets .NET Framework 4.5,
-    # which requires the Developer Pack. Windows-latest runners include it.
+    # Dragablz (submodule at dependencies/Dragablz/, our fork retargeted to
+    # net48) must be pre-built so TCC.Core.csproj's HintPath resolves. The
+    # HintPath expects the dll at dependencies/Dragablz/bin/Release_net45/,
+    # which is one level above the csproj's own location — hence OutputPath
+    # with the extra `..\` prefix.
     - name: Build Dragablz (dependency)
-      run: msbuild dependencies\Dragablz\Dragablz\Dragablz.net45.csproj /p:Configuration=Release /p:OutputPath=bin\Release_net45\
+      run: msbuild dependencies\Dragablz\Dragablz\Dragablz.net45.csproj /p:Configuration=Release /p:OutputPath=..\bin\Release_net45\
 
     - name: Restore dependencies
       run: dotnet restore TCC.sln
