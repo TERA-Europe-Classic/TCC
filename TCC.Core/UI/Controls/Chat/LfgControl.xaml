@@ -1,0 +1,8 @@
+<!-- Classic+ read-only stub: LfgControl rendered the in-chat LFG popup
+     listing players. LFG is stripped, so it renders nothing. Kept only
+     so the LfgTemplate DataTemplate in DataTemplates.xaml compiles. -->
+<UserControl x:Class="TCC.UI.Controls.Chat.LfgControl"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <Grid />
+</UserControl>

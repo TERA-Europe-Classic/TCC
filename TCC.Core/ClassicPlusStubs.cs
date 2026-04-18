@@ -215,4 +215,18 @@ namespace TCC.UI.Controls.Chat
         public string PlayerName { get; set; } = "";
         public void RequestInfo(string name, object region) { _ = name; _ = region; }
     }
+
+    /// <summary>
+    /// Stub for deleted EncounterViewModel. DataTemplates.xaml references it
+    /// as DataType on the MoongourdEncounterDataTemplate — a collection that
+    /// is never populated in read-only mode. Properties exist so XAML data
+    /// bindings resolve without runtime errors.
+    /// </summary>
+    public class EncounterViewModel
+    {
+        public string BossName { get; set; } = "";
+        public string DungeonName { get; set; } = "";
+        public long PlayerDps { get; set; }
+        public int PlayerDeaths { get; set; }
+    }
 }
