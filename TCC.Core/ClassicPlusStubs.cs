@@ -49,6 +49,15 @@ namespace TCC.Interop
         { _ = region; _ = server; _ = accountHash; _ = version; }
         public static void Init() { }
         public static bool UsageStatsEnabled { get; set; }
+        // Called by Game.SendUsageStat + Tester.SendFakeUsageStat. Returns
+        // false so the daily-stat-sent update guard in Game.cs short-circuits.
+        public static System.Threading.Tasks.Task<bool> SendUsageStatAsync(
+            string region, uint serverId, string ip, string serverName,
+            string account, string version, bool isDailyFirst)
+        {
+            _ = region; _ = serverId; _ = ip; _ = serverName; _ = account; _ = version; _ = isDailyFirst;
+            return System.Threading.Tasks.Task.FromResult(false);
+        }
     }
 }
 
@@ -89,6 +98,9 @@ namespace TCC.UI.Controls.Chat
     // returns null so the caller gracefully skips the write.
     public class FriendMessageDialog : System.Windows.Window
     {
+        // PlayerMenuViewModel calls both ctor shapes — parameterless when
+        // adding a friend fresh, with-name when prefilling. Support both.
+        public FriendMessageDialog() { }
         public FriendMessageDialog(string name) { _ = name; }
         public string Message { get; set; } = "";
         public new bool? ShowDialog() => false;
