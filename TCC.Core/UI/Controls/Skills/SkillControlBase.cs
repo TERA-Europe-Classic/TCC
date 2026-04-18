@@ -74,6 +74,18 @@ public class SkillControlBase : UserControl, INotifyPropertyChanged
     {
         if (DesignerProperties.GetIsInDesignMode(this) || DataContext is not Cooldown) return;
         Context = (Cooldown)DataContext;
+
+        // Classic+: SkillsDatabase.TryGetSkill returns a blank Skill
+        // (IconName = "") when the id isn't in the database. That happens
+        // for apex skills on v100.02 which stripped them server-side.
+        // Hide the tile so the class cooldown window doesn't show empty
+        // rhombs/circles for skills that don't exist on this build.
+        if (string.IsNullOrEmpty(Context.Skill?.IconName))
+        {
+            Visibility = Visibility.Collapsed;
+            return;
+        }
+
         OnSecondsUpdated();
         if (!Context.IsAvailable)
         {

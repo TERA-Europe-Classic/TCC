@@ -32,6 +32,16 @@ public partial class RoundSkillEffectControl : INotifyPropertyChanged
     {
         if (DesignerProperties.GetIsInDesignMode(this) || DataContext == null) return;
         _context = (SkillWithEffect)DataContext;
+
+        // Classic+: collapse when the underlying Skill is blank (apex
+        // skills missing from v100.02's skill DB). Matches the logic in
+        // SkillControlBase for bare Cooldown bindings.
+        if (string.IsNullOrEmpty(_context.Cooldown.Skill?.IconName))
+        {
+            Visibility = Visibility.Collapsed;
+            return;
+        }
+
         FixedSkillControl.DataContext = _context.Cooldown;
         _context.Effect.Started += OnBuffStarted;
         _context.Effect.SecondsUpdated += OnSecondsUpdated;
