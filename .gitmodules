@@ -3,7 +3,8 @@
 	url = https://github.com/Foglio1024/ReSource.git
 [submodule "dependencies/Dragablz"]
 	path = dependencies/Dragablz
-	url = https://github.com/Foglio1024/Dragablz.git
+	url = https://github.com/TERA-Europe-Classic/Dragablz.git
+	branch = main
 # [submodule "dependencies/Nostrum"]
 # 	path = dependencies/Nostrum
 # 	url = https://github.com/Foglio1024/Nostrum.git
