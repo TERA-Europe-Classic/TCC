@@ -187,12 +187,12 @@
 	     Before these rules, the publish output was ~3.8 MB (exe + DLLs
 	     only) because content files are not copied to the publish dir by
 	     default. UI-replacement GPKs under Module/client/gpk, the JSON
-	     databases, and the Resources tree (fonts, icons, config) are what
-	     TCC loads at runtime to render its overlays. -->
+	     databases, and the resources tree (fonts, icons, config) are what
+	     TCC loads at runtime to render its overlays. Note: TCC.Core/Data/
+	     is a SOURCE folder (.cs files); don't Content-include it. -->
 	<ItemGroup>
 		<Content Include="Module\**\*.*" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />
-		<Content Include="Resources\**\*.*" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />
-		<Content Include="Data\**\*.*" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />
+		<Content Include="resources\**\*.*" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />
 		<Content Include="..\database-hashes.json" Link="database-hashes.json" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />
 		<Content Include="..\messages.json" Link="messages.json" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />
 		<Content Include="..\version" Link="version" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />
