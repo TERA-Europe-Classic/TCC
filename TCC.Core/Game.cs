@@ -348,7 +348,13 @@ public static class Game
             if (!Directory.Exists(Path.Combine(App.DataPath, "opcodes")))
                 Directory.CreateDirectory(Path.Combine(App.DataPath, "opcodes"));
 
-            if (PacketAnalyzer.Sniffer is ToolboxSniffer tbs && !await tbs.ControlConnection.DumpMap(opcPath, "protocol"))
+            var downloaded = false;
+            if (PacketAnalyzer.Sniffer is ToolboxSniffer tbs)
+            {
+                downloaded = await tbs.ControlConnection.DumpMap(opcPath, "protocol");
+            }
+
+            if (!downloaded)
             {
                 if (!OpcodeDownloader.DownloadOpcodesIfNotExist(p.Versions[0], Path.Combine(App.DataPath, "opcodes/")))
                 {
