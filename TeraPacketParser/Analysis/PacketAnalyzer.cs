@@ -88,7 +88,6 @@ public static class PacketAnalyzer
 
     private static void OnNewConnection(Server srv)
     {
-        if (Sniffer is not TeraSniffer) return;
         DetectClientVersionFromFile();
     }
 
