@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <TargetFramework>net8</TargetFramework>
     <LangVersion>12</LangVersion>
@@ -7,6 +7,6 @@
     <Configurations>Debug;Release;DebugToolbox</Configurations>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
-    <PreBuildEvent>$(SolutionDir)\clean-TargetDir.bat $(SolutionDir)release\</PreBuildEvent>
+    <PreBuildEvent>"$(SolutionDir)clean-TargetDir.bat" "$(SolutionDir)release\"</PreBuildEvent>
   </PropertyGroup>
 </Project>
