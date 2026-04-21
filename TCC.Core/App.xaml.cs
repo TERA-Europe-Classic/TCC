@@ -60,6 +60,11 @@ public partial class App
     /// </summary>
     public static string DataPath { get; private set; } = Path.Combine(ResourcesPath, "data");
 
+    /// <summary>
+    ///     Optional shared interop map directory provided by the launcher / proxy.
+    /// </summary>
+    public static string? MapExportPath { get; private set; }
+
     public static bool Loading { get; private set; }
     public static bool ToolboxMode { get; private set; }
     private static bool FirstStart { get; set; }
@@ -222,11 +227,17 @@ public partial class App
 
         // --root_override 'path'
         var rootOverrideIdx = args.IndexOf("--root_override");
-        if (rootOverrideIdx == -1) return;
+        if (rootOverrideIdx != -1)
+        {
+            BasePath = args[rootOverrideIdx + 1];
+            ResourcesPath = Path.Combine(BasePath, "resources");
+            DataPath = Path.Combine(ResourcesPath, "data");
+        }
 
-        BasePath = args[rootOverrideIdx + 1];
-        ResourcesPath = Path.Combine(BasePath, "resources");
-        DataPath = Path.Combine(ResourcesPath, "data");
+        // --map_export_dir 'path'
+        var mapExportIdx = args.IndexOf("--map_export_dir");
+        if (mapExportIdx != -1)
+            MapExportPath = args[mapExportIdx + 1];
     }
 
     public static void Restart()

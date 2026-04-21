@@ -343,8 +343,17 @@ public static class Game
     private static async Task OnCheckVersion(C_CHECK_VERSION p)
     {
         var opcPath = Path.Combine(App.DataPath, $"opcodes/protocol.{p.Versions[0]}.map").Replace("\\", "/");
+        var sharedOpcPath = string.IsNullOrWhiteSpace(App.MapExportPath)
+            ? ""
+            : Path.Combine(App.MapExportPath, $"protocol.{p.Versions[0]}.map").Replace("\\", "/");
         if (!File.Exists(opcPath))
         {
+            if (!string.IsNullOrWhiteSpace(sharedOpcPath) && File.Exists(sharedOpcPath))
+            {
+                opcPath = sharedOpcPath;
+            }
+            else
+            {
             if (!Directory.Exists(Path.Combine(App.DataPath, "opcodes")))
                 Directory.CreateDirectory(Path.Combine(App.DataPath, "opcodes"));
 
@@ -362,6 +371,7 @@ public static class Game
                     App.Close();
                     return;
                 }
+            }
             }
         }
 
@@ -1035,11 +1045,21 @@ public static class Game
 
         var rvSysMsgPath = Path.Combine(App.DataPath, $"opcodes/sysmsg.{PacketAnalyzer.Factory!.ReleaseVersion / 100}.map");
         var pvSysMsgPath = Path.Combine(App.DataPath, $"opcodes/sysmsg.{PacketAnalyzer.Factory.Version}.map");
+        var sharedRvSysMsgPath = string.IsNullOrWhiteSpace(App.MapExportPath)
+            ? ""
+            : Path.Combine(App.MapExportPath, $"sysmsg.{PacketAnalyzer.Factory.ReleaseVersion / 100}.map");
+        var sharedPvSysMsgPath = string.IsNullOrWhiteSpace(App.MapExportPath)
+            ? ""
+            : Path.Combine(App.MapExportPath, $"sysmsg.{PacketAnalyzer.Factory.Version}.map");
 
         var path = File.Exists(rvSysMsgPath)
             ? rvSysMsgPath
             : File.Exists(pvSysMsgPath)
                 ? pvSysMsgPath
+                : !string.IsNullOrWhiteSpace(sharedPvSysMsgPath) && File.Exists(sharedPvSysMsgPath)
+                    ? sharedPvSysMsgPath
+                    : !string.IsNullOrWhiteSpace(sharedRvSysMsgPath) && File.Exists(sharedRvSysMsgPath)
+                        ? sharedRvSysMsgPath
                 : "";
 
         var destPath = pvSysMsgPath.Replace("\\", "/");
