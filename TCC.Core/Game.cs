@@ -1048,7 +1048,7 @@ public static class Game
         {
             if (await tbs.ControlConnection.DumpMap(destPath, "sysmsg"))
             {
-                PacketAnalyzer.Factory.SystemMessageNamer = new OpCodeNamer(destPath);
+                PacketAnalyzer.Factory.ReloadSysMsg(destPath);
                 return;
             }
         }
@@ -1056,16 +1056,20 @@ public static class Game
         {
             if (OpcodeDownloader.DownloadSysmsgIfNotExist(PacketAnalyzer.Factory.Version, Path.Combine(App.DataPath, "opcodes/"), PacketAnalyzer.Factory.ReleaseVersion))
             {
-                PacketAnalyzer.Factory.SystemMessageNamer = new OpCodeNamer(destPath);
+                PacketAnalyzer.Factory.ReloadSysMsg(destPath);
                 return;
             }
         }
+
         if (path == "")
         {
-            TccMessageBox.Show(SR.InvalidSysMsgFile(PacketAnalyzer.Factory.ReleaseVersion / 100, PacketAnalyzer.Factory.Version), MessageBoxType.Error);
-            App.Close();
+            var warning = $"System-message data is not available for client {PacketAnalyzer.Factory.ReleaseVersion / 100}.{PacketAnalyzer.Factory.ReleaseVersion % 100} / protocol {PacketAnalyzer.Factory.Version}. TCC will continue, but some chat and system-message features may be limited.";
+            Log.CW(warning);
+            Log.F(warning, "warning.log");
+            Log.N("TCC", warning, NotificationType.Warning, 9000);
             return;
         }
+
         PacketAnalyzer.Factory.ReloadSysMsg(path);
     }
 
