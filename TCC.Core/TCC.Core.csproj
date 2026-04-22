@@ -13,7 +13,7 @@
 		<UseWPF>true</UseWPF>
 		<Authors>Foglio</Authors>
 		<Company>Foglio</Company>
-		<Version>1.4.166</Version>
+		<Version>2.0.7-classicplus</Version>
 		<Description>TERA Custom Cooldowns</Description>
 		<PackageIcon>tcc.ico</PackageIcon>
 		<PackageIconUrl />
