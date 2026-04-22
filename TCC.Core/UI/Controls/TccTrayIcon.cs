@@ -1,29 +1,33 @@
-﻿using System.Drawing;
+using System;
+using System.Drawing;
 using System.Windows.Controls;
 using System.Windows.Forms;
 using Nostrum.WPF;
+using TCC.Utilities;
 
 namespace TCC.UI.Controls;
 
 public class TccTrayIcon
 {
     private bool _connected;
-    private readonly NotifyIcon _trayIcon;
+    private NotifyIcon _trayIcon;
     private readonly ContextMenu _contextMenu;
     private readonly Icon? _defaultIcon;
     private readonly Icon? _connectedIcon;
+    private readonly TrayMessageWindow _messageWindow;
 
     public bool Connected
     {
         get => _connected;
         set
         {
-            if(_connected == value) return;
+            if (_connected == value) return;
             _connected = value;
 
             _trayIcon.Icon = _connected ? _connectedIcon : _defaultIcon;
         }
     }
+
     public string Text
     {
         get => _trayIcon.Text;
@@ -34,15 +38,6 @@ public class TccTrayIcon
     {
         _defaultIcon = MiscUtils.GetEmbeddedIcon("resources/tcc_off.ico");
         _connectedIcon = MiscUtils.GetEmbeddedIcon("resources/tcc_on.ico");
-
-        _trayIcon = new NotifyIcon
-        {
-            Icon = _defaultIcon,
-            Visible = true
-        };
-        _trayIcon.MouseDown += OnMouseDown;
-        _trayIcon.MouseDoubleClick += (_, _) => WindowManager.SettingsWindow.ShowWindow();
-        _trayIcon.Text = $"{App.AppVersion} - not connected";
 
         _contextMenu = new ContextMenu();
         _contextMenu.Items.Add(new MenuItem { Header = "Dashboard", Command = new RelayCommand(_ => WindowManager.DashboardWindow.ShowWindow()) });
@@ -57,6 +52,30 @@ public class TccTrayIcon
             })
         });
 
+        _trayIcon = CreateNotifyIcon();
+        _messageWindow = new TrayMessageWindow(() => App.BaseDispatcher.InvokeAsync(RecreateTrayIcon));
+        RecreateTrayIcon();
+    }
+
+    private NotifyIcon CreateNotifyIcon()
+    {
+        var trayIcon = new NotifyIcon
+        {
+            Icon = _connected ? _connectedIcon : _defaultIcon,
+            Visible = true,
+            Text = $"{App.AppVersion} - {(_connected ? "connected" : "not connected")}",
+        };
+        trayIcon.MouseDown += OnMouseDown;
+        trayIcon.MouseDoubleClick += (_, _) => WindowManager.SettingsWindow.ShowWindow();
+        return trayIcon;
+    }
+
+    private void RecreateTrayIcon()
+    {
+        _trayIcon.Visible = false;
+        _trayIcon.Dispose();
+        _trayIcon = CreateNotifyIcon();
+        _trayIcon.Visible = true;
     }
 
     private void OnMouseDown(object? sender, MouseEventArgs e)
@@ -71,6 +90,36 @@ public class TccTrayIcon
 
     public void Dispose()
     {
+        _messageWindow.Dispose();
+        _trayIcon.Visible = false;
         _trayIcon.Dispose();
+    }
+
+    private sealed class TrayMessageWindow : NativeWindow, IDisposable
+    {
+        private readonly Action _onTaskbarCreated;
+        private readonly int _taskbarCreatedMessageId;
+
+        public TrayMessageWindow(Action onTaskbarCreated)
+        {
+            _onTaskbarCreated = onTaskbarCreated;
+            _taskbarCreatedMessageId = TrayMessageUtils.GetTaskbarCreatedMessageId();
+            CreateHandle(new CreateParams());
+        }
+
+        protected override void WndProc(ref Message m)
+        {
+            if (TrayMessageUtils.IsTaskbarCreatedMessage(m.Msg, _taskbarCreatedMessageId))
+            {
+                _onTaskbarCreated();
+            }
+
+            base.WndProc(ref m);
+        }
+
+        public void Dispose()
+        {
+            DestroyHandle();
+        }
     }
 }
