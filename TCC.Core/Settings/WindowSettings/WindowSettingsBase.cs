@@ -199,6 +199,7 @@ public class WindowSettingsBase : ThreadSafeObservableObject
             ClickThruModeChanged?.Invoke();
         }
     }
+    [JsonIgnore]
     public ButtonsPosition ButtonsPosition
     {
         get

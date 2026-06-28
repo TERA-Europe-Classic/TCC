@@ -17,7 +17,7 @@ public partial class CheckboxSetting
         set => SetValue(IsOnProperty, value);
     }
     public static readonly DependencyProperty IsOnProperty =
-        DependencyProperty.Register(nameof(IsOn), typeof(bool), typeof(CheckboxSetting), new PropertyMetadata(false));
+        DependencyProperty.Register(nameof(IsOn), typeof(bool), typeof(CheckboxSetting), new PropertyMetadata(false, OnSettingValueChanged));
 
     public Brush CheckBoxColor
     {
@@ -55,5 +55,16 @@ public partial class CheckboxSetting
     private void OnMouseButtonDown(object sender, MouseButtonEventArgs e)
     {
         CheckBox.IsChecked = !CheckBox.IsChecked;
+    }
+
+    private static void OnSettingValueChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+    {
+        SaveSettingsIfReady();
+    }
+
+    private static void SaveSettingsIfReady()
+    {
+        if (App.Settings == null || App.Loading) return;
+        App.Settings.Save();
     }
 }

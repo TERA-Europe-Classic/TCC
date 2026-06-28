@@ -37,7 +37,7 @@ public partial class SelectionSetting
         get => (string?)GetValue(SelectedItemProperty);
         set => SetValue(SelectedItemProperty, value);
     }
-    public static readonly DependencyProperty SelectedItemProperty = DependencyProperty.Register(nameof(SelectedItem), typeof(string), typeof(SelectionSetting));
+    public static readonly DependencyProperty SelectedItemProperty = DependencyProperty.Register(nameof(SelectedItem), typeof(string), typeof(SelectionSetting), new PropertyMetadata(null, OnSettingValueChanged));
 
     public Type ChoicesType
     {
@@ -82,5 +82,16 @@ public partial class SelectionSetting
     private void OnMouseButtonDown(object sender, MouseButtonEventArgs e)
     {
         Cbox.IsDropDownOpen = true;
+    }
+
+    private static void OnSettingValueChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+    {
+        SaveSettingsIfReady();
+    }
+
+    private static void SaveSettingsIfReady()
+    {
+        if (App.Settings == null || App.Loading) return;
+        App.Settings.Save();
     }
 }

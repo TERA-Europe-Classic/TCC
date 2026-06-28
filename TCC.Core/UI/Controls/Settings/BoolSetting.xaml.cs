@@ -38,7 +38,7 @@ public partial class BoolSetting
         set => SetValue(IsOnProperty, value);
     }
     public static readonly DependencyProperty IsOnProperty =
-        DependencyProperty.Register(nameof(IsOn), typeof(bool), typeof(BoolSetting), new PropertyMetadata(false));
+        DependencyProperty.Register(nameof(IsOn), typeof(bool), typeof(BoolSetting), new PropertyMetadata(false, OnSettingValueChanged));
 
     public ImageSource SettingImage
     {
@@ -51,6 +51,17 @@ public partial class BoolSetting
     private void ToggleSetting(object sender, MouseButtonEventArgs e)
     {
         IsOn = !IsOn;
+    }
+
+    private static void OnSettingValueChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+    {
+        SaveSettingsIfReady();
+    }
+
+    private static void SaveSettingsIfReady()
+    {
+        if (App.Settings == null || App.Loading) return;
+        App.Settings.Save();
     }
 
     private void Grid_MouseEnter(object sender, MouseEventArgs e)

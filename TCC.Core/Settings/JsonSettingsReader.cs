@@ -4,12 +4,9 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
-using System.Windows;
 using Nostrum.WPF.Extensions;
-using TCC.UI.Windows;
 using TCC.Utilities;
 using TCC.Utils;
-using MessageBoxImage = TCC.Data.MessageBoxImage;
 
 namespace TCC.Settings;
 
@@ -80,99 +77,126 @@ public class JsonSettingsReader : SettingsReaderBase
 
     public SettingsContainer LoadSettings(string path)
     {
+        if (!File.Exists(path)) return new SettingsContainer();
+
         try
         {
-            if (File.Exists(path))
+            return LoadExistingSettings(path);
+        }
+        catch (Exception primaryException)
+        {
+            Log.F($"Failed to load settings from {path}: {primaryException}");
+        }
+
+        var backupPath = SettingsGlobals.GetBackupPath(path);
+        if (File.Exists(backupPath))
+        {
+            try
             {
-                var file = File.ReadAllText(path);
-                #region Compatibility
-                file = file.Replace("\"TabName\"", "\"Name\"")
-                    .Replace("\"ExcludedAuthors\"", "\"HiddenAuthors\"")
-                    .Replace("\"ExcludedChannels\"", "\"HiddenChannels\"")
-                    .Replace("\"Channels\"", "\"ShowedChannels\"")
-                    .Replace("\"Authors\"", "\"ShowedAuthors\"")
-                    .Replace("\"LanguageOverride\": \"\"", "\"LanguageOverride\" : 0");
+                var settings = LoadExistingSettings(backupPath);
+                RestoreBackup(path, backupPath);
+                return settings;
+            }
+            catch (Exception backupException)
+            {
+                Log.F($"Failed to load settings backup from {backupPath}: {backupException}");
+            }
+        }
 
-                #endregion
-                var ret = JsonConvert.DeserializeObject<SettingsContainer>(file, TccUtils.GetDefaultJsonSerializerSettings())!;
+        QuarantineUnreadableSettings(path);
+        return new SettingsContainer();
+    }
 
-                #region Compatibility
+    private static SettingsContainer LoadExistingSettings(string path)
+    {
+        var file = File.ReadAllText(path);
+
+        #region Compatibility
+
+        file = file.Replace("\"TabName\"", "\"Name\"")
+            .Replace("\"ExcludedAuthors\"", "\"HiddenAuthors\"")
+            .Replace("\"ExcludedChannels\"", "\"HiddenChannels\"")
+            .Replace("\"Channels\"", "\"ShowedChannels\"")
+            .Replace("\"Authors\"", "\"ShowedAuthors\"")
+            .Replace("\"LanguageOverride\": \"\"", "\"LanguageOverride\" : 0");
+
+        #endregion
+
+        var ret = JsonConvert.DeserializeObject<SettingsContainer>(file, TccUtils.GetDefaultJsonSerializerSettings())
+                  ?? new SettingsContainer();
+
+        #region Compatibility
 
 #pragma warning disable CS0612 // Il tipo o il membro è obsoleto
 
-                if (ret.StatSentVersion != App.AppVersion)
-                {
-                    foreach (var special in ret.BuffWindowSettings.Specials)
-                    {
-                        ret.AbnormalitySettings.Favorites.Add(special);
-                    }
-                    ret.BuffWindowSettings.Specials.Clear();
+        if (ret.StatSentVersion != App.AppVersion)
+        {
+            foreach (var special in ret.BuffWindowSettings.Specials)
+            {
+                ret.AbnormalitySettings.Favorites.Add(special);
+            }
+            ret.BuffWindowSettings.Specials.Clear();
 
-                    foreach (var hidden in ret.BuffWindowSettings.Hidden)
-                    {
-                        ret.AbnormalitySettings.Self.Collapsible.Add(hidden);
-                    }
-                    ret.BuffWindowSettings.Hidden.Clear();
+            foreach (var hidden in ret.BuffWindowSettings.Hidden)
+            {
+                ret.AbnormalitySettings.Self.Collapsible.Add(hidden);
+            }
+            ret.BuffWindowSettings.Hidden.Clear();
 
-                    foreach (var hidden in ret.GroupWindowSettings.Hidden)
-                    {
-                        ret.AbnormalitySettings.Group.Collapsible.Add(hidden);
-                    }
-                    ret.GroupWindowSettings.Hidden.Clear();
+            foreach (var hidden in ret.GroupWindowSettings.Hidden)
+            {
+                ret.AbnormalitySettings.Group.Collapsible.Add(hidden);
+            }
+            ret.GroupWindowSettings.Hidden.Clear();
 
-                    foreach (var (cl, list) in ret.BuffWindowSettings.MyAbnormals)
-                    {
-                        ret.AbnormalitySettings.Self.Whitelist[cl] = list;
-                    }
-                    ret.BuffWindowSettings.MyAbnormals.Clear();
+            foreach (var (cl, list) in ret.BuffWindowSettings.MyAbnormals)
+            {
+                ret.AbnormalitySettings.Self.Whitelist[cl] = list;
+            }
+            ret.BuffWindowSettings.MyAbnormals.Clear();
 
-                    foreach (var (cl, list) in ret.GroupWindowSettings.GroupAbnormals)
-                    {
-                        ret.AbnormalitySettings.Group.Whitelist[cl] = list;
-                    }
-                    ret.GroupWindowSettings.GroupAbnormals.Clear();
+            foreach (var (cl, list) in ret.GroupWindowSettings.GroupAbnormals)
+            {
+                ret.AbnormalitySettings.Group.Whitelist[cl] = list;
+            }
+            ret.GroupWindowSettings.GroupAbnormals.Clear();
 
-                    ret.AbnormalitySettings.Self.ShowAll = ret.BuffWindowSettings.ShowAll;
-                    ret.AbnormalitySettings.Group.ShowAll = ret.GroupWindowSettings.ShowAllAbnormalities;
-                }
+            ret.AbnormalitySettings.Self.ShowAll = ret.BuffWindowSettings.ShowAll;
+            ret.AbnormalitySettings.Group.ShowAll = ret.GroupWindowSettings.ShowAllAbnormalities;
+        }
 
 #pragma warning restore CS0612 // Il tipo o il membro è obsoleto
 
-                #endregion
+        #endregion
 
-                return ret;
-            }
-            //                else
-            //                {
-            //#if false
-            //                    var res = TccMessageBox.Show(SR.SettingsNotFoundImport, MessageBoxType.ConfirmationWithYesNo);
-            //                    if (res == MessageBoxResult.No)
-            //                    {
-            //                        App.Settings = new SettingsContainer();
-            //                        return;
-            //                    }
-            //                    var diag = new OpenFileDialog
-            //                    {
-            //                        Title = $"Import TCC settings file ({FileName})",
-            //                        Filter = $"{FileName} (*.json)|*.json"
-            //                    };
-            //                    if (diag.ShowDialog() == true)
-            //                    {
-            //                        path = diag.FileName;
-            //                        LoadSettings(path);
-            //                    }
-            //                    else App.Settings = new SettingsContainer();
-            //#else
-            //                    return new SettingsContainer();
-            //#endif
-            //                }
-        }
-        catch
+        return ret;
+    }
+
+    private static void RestoreBackup(string path, string backupPath)
+    {
+        try
         {
-            var res = TccMessageBox.Show("TCC", SR.SettingsNotFoundDefault, MessageBoxButton.YesNo, MessageBoxImage.Error);
-            if (res == MessageBoxResult.Yes) File.Delete(path);
-            LoadSettings(path);
+            QuarantineUnreadableSettings(path);
+            File.Copy(backupPath, path, true);
         }
-        return new SettingsContainer();
+        catch (Exception ex)
+        {
+            Log.F($"Failed to restore settings backup {backupPath} to {path}: {ex}");
+        }
+    }
+
+    private static void QuarantineUnreadableSettings(string path)
+    {
+        try
+        {
+            if (!File.Exists(path)) return;
+
+            var corruptPath = $"{path}.corrupt-{DateTime.UtcNow:yyyyMMddHHmmssfff}";
+            File.Move(path, corruptPath);
+        }
+        catch (Exception ex)
+        {
+            Log.F($"Failed to quarantine unreadable settings file {path}: {ex}");
+        }
     }
 }

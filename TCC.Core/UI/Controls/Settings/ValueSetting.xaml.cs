@@ -48,7 +48,7 @@ public partial class ValueSetting
         set => SetValue(ValueProperty, value);
     }
     public static readonly DependencyProperty ValueProperty = 
-        DependencyProperty.Register(nameof(Value), typeof(double), typeof(ValueSetting));
+        DependencyProperty.Register(nameof(Value), typeof(double), typeof(ValueSetting), new PropertyMetadata(0D, OnSettingValueChanged));
 
     public Geometry SvgIcon
     {
@@ -130,5 +130,16 @@ private void FrameworkElement_OnLoaded(object sender, RoutedEventArgs e)
     {
         if (e.Key != Key.Enter) return;
         Keyboard.ClearFocus();
+    }
+
+    private static void OnSettingValueChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+    {
+        SaveSettingsIfReady();
+    }
+
+    private static void SaveSettingsIfReady()
+    {
+        if (App.Settings == null || App.Loading) return;
+        App.Settings.Save();
     }
 }
