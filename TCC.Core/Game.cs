@@ -297,7 +297,6 @@ public static class Game
         PacketAnalyzer.Processor.Hook<S_FRIEND_LIST>(OnFriendList);
         PacketAnalyzer.Processor.Hook<S_USER_BLOCK_LIST>(OnUserBlockList);
         PacketAnalyzer.Processor.Hook<S_BOSS_GAGE_INFO>(OnBossGageInfo);
-        PacketAnalyzer.Processor.Hook<S_CREATURE_CHANGE_HP>(OnCreatureChangeHp);
 
         PacketAnalyzer.Processor.Hook<S_FIN_INTER_PARTY_MATCH>(OnFinInterPartyMatch);
         PacketAnalyzer.Processor.Hook<S_BATTLE_FIELD_ENTRANCE_INFO>(OnBattleFieldEntranceInfo);
