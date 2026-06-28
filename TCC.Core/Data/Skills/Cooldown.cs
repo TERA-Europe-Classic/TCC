@@ -263,7 +263,6 @@ public class Cooldown : ThreadSafeObservableObject, IDisposable
 
     public void Refresh(ulong id, ulong cd, CooldownMode mode)
     {
-        if (Skill.Id % 10 == 0 && id % 10 != 0) return; //TODO: check this; discards updates if new id is not base
         Refresh(cd, mode);
     }
 

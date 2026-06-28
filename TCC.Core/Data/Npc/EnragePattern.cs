@@ -24,6 +24,7 @@ public class EnragePattern
 
     public EnragePattern(long maxHp, long flatHp, int duration)
     {
+        Percentage = 10;
         Duration = duration;
         _flatHp = flatHp;
         Update(maxHp);
@@ -32,6 +33,7 @@ public class EnragePattern
     internal void Update(double maxHp)
     {
         if (_flatHp == -1) return;
+        if (maxHp <= 0) return;
         Percentage = _flatHp / maxHp * 100;
     }
 }

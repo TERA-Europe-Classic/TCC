@@ -27,7 +27,7 @@ public class MonsterDatabase : DatabaseBase
 
     public bool TryGetMonster(uint templateId, uint zoneId, out Monster m)
     {
-        m = new Monster(0, 0, "Unknown", 0, false, false, Species.Unknown);
+        m = new Monster(0, 0, "Unknown", 0, 0, false, false, Species.Unknown);
 
         if (!_zones.TryGetValue(zoneId, out var z) || !z.Monsters.TryGetValue(templateId, out var found))
         {
@@ -74,9 +74,10 @@ public class MonsterDatabase : DatabaseBase
                 var name = monster.Attribute("name")?.Value ?? "Unknown";
                 var isBoss = monster.Attribute("isBoss")?.Value == "True";
                 var maxHP = Convert.ToInt64(monster.Attribute("hp")?.Value);
+                var enrageHP = Convert.ToInt64(monster.Attribute("enrageHp")?.Value ?? "0");
                 var species = (Species)int.Parse(monster.Attribute("speciesId")?.Value ?? "0");
 
-                var m = new Monster(id, zoneId, name, maxHP, isBoss, false, species);
+                var m = new Monster(id, zoneId, name, maxHP, enrageHP, isBoss, false, species);
                 z.AddMonster(m);
             }
 
@@ -115,8 +116,9 @@ public class MonsterDatabase : DatabaseBase
                     var isBoss = bool.Parse(monst.Attribute("isBoss")?.Value ?? "false");
                     var isHidden = bool.Parse(monst.Attribute("isHidden")?.Value ?? "false");
                     var maxHp = long.Parse(monst.Attribute("hp")?.Value ?? "0");
+                    var enrageHp = long.Parse(monst.Attribute("enrageHp")?.Value ?? "0");
                     var species = int.Parse(monst.Attribute("speciesId")?.Value ?? "0");
-                    z.Monsters.Add(mId, new Monster(mId, zoneId, name, maxHp, isBoss, isHidden, (Species)species));
+                    z.Monsters.Add(mId, new Monster(mId, zoneId, name, maxHp, enrageHp, isBoss, isHidden, (Species)species));
                 }
             }
         }
@@ -326,15 +328,17 @@ public class Monster
     public uint ZoneId { get; }
     public string Name { get; set; }
     public long MaxHP { get; }
+    public long EnrageHP { get; }
     public bool IsBoss { get; set; }
     public bool IsHidden { get; set; }
     public Species Species { get; }
 
-    public Monster(uint npc, uint zoneId, string name, long maxHp, bool isBoss, bool isHidden, Species sp)
+    public Monster(uint npc, uint zoneId, string name, long maxHp, long enrageHp, bool isBoss, bool isHidden, Species sp)
     {
         TemplateId = npc;
         Name = name;
         MaxHP = maxHp;
+        EnrageHP = enrageHp;
         IsBoss = isBoss;
         IsHidden = isHidden;
         ZoneId = zoneId;

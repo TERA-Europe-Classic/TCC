@@ -128,7 +128,6 @@ public class CooldownWindowViewModel : TccWindowViewModel
                 var existing = ShortSkills.ToSyncList().FirstOrDefault(x => x.Skill.IconName == skill.IconName);
                 if (existing == null)
                 {
-                    if (skill.Id % 10 != 0) return; //TODO: check this; discards updates if new id is not base
                     ShortSkills.Add(new Cooldown(skill, cd));
                 }
                 else

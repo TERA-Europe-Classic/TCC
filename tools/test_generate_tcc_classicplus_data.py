@@ -47,6 +47,94 @@ class ClassicPlusGeneratorTests(unittest.TestCase):
             self.assertNotIn("Level 66", generated)
             self.assertNotIn("Twin Axe", generated)
 
+    def test_build_skills_adds_packet_child_aliases_from_skill_data(self):
+        with tempfile.TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            dc_dir = root / "dc"
+            out_dir = root / "out"
+            (dc_dir / "SkillIconData").mkdir(parents=True)
+            (dc_dir / "StrSheet_UserSkill").mkdir(parents=True)
+            (dc_dir / "SkillData").mkdir(parents=True)
+
+            (dc_dir / "SkillIconData" / "SkillIconData-00000.xml").write_text(
+                """<?xml version="1.0" encoding="utf-8"?>
+<SkillIconData>
+  <Icon skillId="30800" race="Common" gender="Common" class="Assassin" iconName="Icon_Skills.C12_RapidShot" />
+</SkillIconData>
+""",
+                encoding="utf-8",
+            )
+            (dc_dir / "StrSheet_UserSkill" / "StrSheet_UserSkill-00000.xml").write_text(
+                """<?xml version="1.0" encoding="utf-8"?>
+<StrSheet_UserSkill>
+  <String id="30800" race="Common" gender="Common" class="Assassin" name="Leaves on the Wind VIII" tooltip="Throw spikes." />
+</StrSheet_UserSkill>
+""",
+                encoding="utf-8",
+            )
+            (dc_dir / "SkillData" / "SkillData-00000.xml").write_text(
+                """<?xml version="1.0" encoding="utf-8"?>
+<SkillData>
+  <Skill id="30830" name="Popori_M_Assassin_Lv08_Rapid Shot_Continuous" />
+  <Skill id="30820" name="Popori_M_Assassin_Lv08_Rapid Shot Projectile" />
+</SkillData>
+""",
+                encoding="utf-8",
+            )
+
+            generator.build_skills(dc_dir, out_dir, "EU-EN")
+
+            generated = (out_dir / "skills" / "skills-EU-EN.tsv").read_text(encoding="utf-8")
+            self.assertIn(
+                "30800\tCommon\tCommon\tNinja\tLeaves on the Wind VIII\t\t\ticon_skills.c12_rapidshot\n",
+                generated,
+            )
+            self.assertIn(
+                "30820\tCommon\tCommon\tNinja\tLeaves on the Wind VIII\t\t\ticon_skills.c12_rapidshot\n",
+                generated,
+            )
+            self.assertIn(
+                "30830\tCommon\tCommon\tNinja\tLeaves on the Wind VIII\t\t\ticon_skills.c12_rapidshot\n",
+                generated,
+            )
+
+    def test_build_monsters_uses_elinu_hp_and_anger_gauge(self):
+        with tempfile.TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            dc_dir = root / "dc"
+            out_dir = root / "out"
+            (dc_dir / "NpcData").mkdir(parents=True)
+            (dc_dir / "StrSheet_Creature").mkdir(parents=True)
+
+            (dc_dir / "NpcData" / "NpcData-00000.xml").write_text(
+                """<?xml version="1.0" encoding="utf-8"?>
+<NpcData huntingZoneId="950">
+  <Template id="1000" elite="true" speciesId="7">
+    <Anger gaugeSize="151234.349719337" />
+    <Stat level="65" maxHp="302468.699438673" />
+  </Template>
+</NpcData>
+""",
+                encoding="utf-8",
+            )
+            (dc_dir / "StrSheet_Creature" / "StrSheet_Creature-00000.xml").write_text(
+                """<?xml version="1.0" encoding="utf-8"?>
+<StrSheet_Creature>
+  <HuntingZone id="950">
+    <String templateId="1000" name="Classic Boss" />
+  </HuntingZone>
+</StrSheet_Creature>
+""",
+                encoding="utf-8",
+            )
+
+            generator.build_monsters(dc_dir, out_dir, "EU-EN")
+
+            generated = (out_dir / "monsters" / "monsters-EU-EN.xml").read_text(encoding="utf-8")
+            self.assertIn('name="Classic Boss"', generated)
+            self.assertIn('hp="302469"', generated)
+            self.assertIn('enrageHp="151234"', generated)
+
     def test_scrub_generated_output_removes_apex_awaken_terms_from_tsv_and_xml(self):
         with tempfile.TemporaryDirectory() as temp_dir:
             out_dir = Path(temp_dir)
@@ -88,6 +176,7 @@ class ClassicPlusGeneratorTests(unittest.TestCase):
             for keep_name in [".git", ".github", "opcodes"]:
                 (out_dir / keep_name).mkdir()
             (out_dir / "README.md").write_text("docs", encoding="utf-8")
+            (out_dir / "database-hashes.json").write_text("{}", encoding="utf-8")
             (out_dir / "old").mkdir()
             (out_dir / "old.txt").write_text("old", encoding="utf-8")
 
@@ -97,8 +186,38 @@ class ClassicPlusGeneratorTests(unittest.TestCase):
             self.assertTrue((out_dir / ".github").is_dir())
             self.assertTrue((out_dir / "opcodes").is_dir())
             self.assertTrue((out_dir / "README.md").is_file())
+            self.assertTrue((out_dir / "database-hashes.json").is_file())
             self.assertFalse((out_dir / "old").exists())
             self.assertFalse((out_dir / "old.txt").exists())
+
+    def test_write_hashes_updates_packaged_and_hosted_hash_files_without_hashing_itself(self):
+        with tempfile.TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            out_dir = root / "out"
+            out_dir.mkdir()
+            (out_dir / "items").mkdir()
+            (out_dir / ".git").mkdir()
+            (out_dir / ".github").mkdir()
+            (out_dir / "opcodes").mkdir()
+            (out_dir / "items" / "items-EU-EN.tsv").write_text("100\tPotion\n", encoding="utf-8")
+            (out_dir / ".git" / "index").write_text("local git state", encoding="utf-8")
+            (out_dir / ".github" / "workflow.yml").write_text("ci", encoding="utf-8")
+            (out_dir / "opcodes" / "protocol.map").write_text("C_CHECK_VERSION 1", encoding="utf-8")
+            (out_dir / "README.md").write_text("docs", encoding="utf-8")
+            (out_dir / "database-hashes.json").write_text("stale", encoding="utf-8")
+            hashes_path = root / "packaged-hashes.json"
+
+            generator.write_hashes(out_dir, hashes_path)
+
+            packaged_hashes = hashes_path.read_text(encoding="utf-8")
+            hosted_hashes = (out_dir / "database-hashes.json").read_text(encoding="utf-8")
+            self.assertEqual(packaged_hashes, hosted_hashes)
+            self.assertIn("items/items-EU-EN.tsv", packaged_hashes)
+            self.assertNotIn("database-hashes.json", packaged_hashes)
+            self.assertNotIn(".git/", packaged_hashes)
+            self.assertNotIn(".github/", packaged_hashes)
+            self.assertNotIn("opcodes/", packaged_hashes)
+            self.assertNotIn("README.md", packaged_hashes)
 
 
 if __name__ == "__main__":

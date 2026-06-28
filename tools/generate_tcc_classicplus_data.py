@@ -19,7 +19,8 @@ LANGUAGES = {
     "RU": "DataCenter_Final_RUS",
 }
 
-OUTPUT_KEEP_NAMES = {".git", ".github", "README.md", "opcodes"}
+DATABASE_HASH_FILE_NAME = "database-hashes.json"
+OUTPUT_KEEP_NAMES = {".git", ".github", "README.md", DATABASE_HASH_FILE_NAME, "opcodes"}
 MAX_CHARACTER_LEVEL = 65
 DISABLED_CONTENT_RE = re.compile(
     "(?:apex|awaken|apog(?:e|\u00e9)e|(?:\u00e9|e)veil|erweck|erwach|\u043f\u0440\u043e\u0431\u0443\u0436)",
@@ -80,6 +81,13 @@ def clean(value: str | None) -> str:
 def to_int(value: str | None, default: int = 0) -> int:
     try:
         return int(value or default)
+    except ValueError:
+        return default
+
+
+def to_rounded_int(value: str | None, default: int = 0) -> int:
+    try:
+        return int(round(float(value or default)))
     except ValueError:
         return default
 
@@ -224,6 +232,24 @@ def build_items(dc_dir: Path, out_dir: Path, lang: str) -> None:
     write_tsv(out_dir / "items" / f"items-{lang}.tsv", rows)
 
 
+KNOWN_CLASSES = {
+    "warrior": "Warrior",
+    "lancer": "Lancer",
+    "slayer": "Slayer",
+    "berserker": "Berserker",
+    "sorcerer": "Sorcerer",
+    "archer": "Archer",
+    "priest": "Priest",
+    "mystic": "Mystic",
+    "reaper": "Reaper",
+    "gunner": "Gunner",
+    "brawler": "Brawler",
+    "ninja": "Ninja",
+    "valkyrie": "Valkyrie",
+    **CLASS_ALIASES,
+}
+
+
 def skill_key(skill_id: int, race: str, gender: str, klass: str) -> tuple[int, str, str, str]:
     return skill_id, race, gender, normalize_class(klass)
 
@@ -231,6 +257,16 @@ def skill_key(skill_id: int, race: str, gender: str, klass: str) -> tuple[int, s
 def is_apex_skill(name: str, tooltip: str, icon: str) -> bool:
     haystack = f"{name} {tooltip} {icon}".lower()
     return has_disabled_content(haystack)
+
+
+def class_from_skill_data_name(name: str | None) -> str:
+    if not name:
+        return ""
+    for part in re.split(r"[_\s]+", name):
+        klass = KNOWN_CLASSES.get(part.lower())
+        if klass:
+            return klass
+    return ""
 
 
 def build_skills(dc_dir: Path, out_dir: Path, lang: str) -> None:
@@ -260,6 +296,30 @@ def build_skills(dc_dir: Path, out_dir: Path, lang: str) -> None:
         if not icon_name or is_apex_skill(name, tooltip, icon_name):
             continue
         rows.append([skill_id, race, gender, klass, name, "", "", icon_name])
+
+    rows_by_key = {(int(row[0]), str(row[1]), str(row[2]), str(row[3])): row for row in rows}
+    visible_rows_by_skill = {}
+    for row in rows:
+        visible_rows_by_skill.setdefault((int(row[0]), str(row[3])), []).append(row)
+
+    for skill in elements(dc_dir, "SkillData", "Skill"):
+        skill_id = to_int(skill.get("id"))
+        if not skill_id or skill_id % 100 == 0:
+            continue
+
+        visible_id = skill_id - skill_id % 100
+        klass = class_from_skill_data_name(skill.get("name"))
+        if not klass:
+            continue
+
+        for visible_row in visible_rows_by_skill.get((visible_id, klass), []):
+            key = (skill_id, str(visible_row[1]), str(visible_row[2]), klass)
+            if key in rows_by_key:
+                continue
+
+            alias_row = [skill_id, visible_row[1], visible_row[2], klass, visible_row[4], "", "", visible_row[7]]
+            rows.append(alias_row)
+            rows_by_key[key] = alias_row
 
     rows.sort(key=lambda row: (str(row[3]), int(row[0]), str(row[1]), str(row[2])))
     write_tsv(out_dir / "skills" / f"skills-{lang}.tsv", rows)
@@ -398,7 +458,7 @@ def build_world_map(dc_dir: Path, out_dir: Path, lang: str) -> None:
 
 
 def build_monsters(dc_dir: Path, out_dir: Path, lang: str) -> None:
-    template_data: dict[tuple[int, int], tuple[str, int]] = {}
+    template_data: dict[tuple[int, int], tuple[str, int, int, int]] = {}
     for npc_file in xml_files(dc_dir / "NpcData"):
         root = ET.parse(npc_file).getroot()
         hunting_zone_id = to_int(root.get("huntingZoneId"))
@@ -406,10 +466,14 @@ def build_monsters(dc_dir: Path, out_dir: Path, lang: str) -> None:
             if local_name(npc.tag) != "Template":
                 continue
             template_id = to_int(npc.get("id"))
+            stat = next((x for x in npc if local_name(x.tag) == "Stat"), None)
+            anger = next((x for x in npc if local_name(x.tag) == "Anger"), None)
             if template_id:
                 template_data[(hunting_zone_id, template_id)] = (
                     normalize_bool(npc.get("elite")),
                     to_int(npc.get("speciesId")),
+                    to_rounded_int(stat.get("maxHp") if stat is not None else None),
+                    to_rounded_int(anger.get("gaugeSize") if anger is not None else None),
                 )
 
     names: dict[tuple[int, int], str] = {}
@@ -425,16 +489,16 @@ def build_monsters(dc_dir: Path, out_dir: Path, lang: str) -> None:
                 if template_id and name:
                     names[(zone_id, template_id)] = name
 
-    zones: dict[int, list[tuple[int, str, str, int]]] = {}
+    zones: dict[int, list[tuple[int, str, str, int, int, int]]] = {}
     for key, name in names.items():
         zone_id, template_id = key
-        elite, species = template_data.get(key, ("False", 0))
-        zones.setdefault(zone_id, []).append((template_id, name, elite, species))
+        elite, species, hp, enrage_hp = template_data.get(key, ("False", 0, 0, 0))
+        zones.setdefault(zone_id, []).append((template_id, name, elite, species, hp, enrage_hp))
 
     root = ET.Element("Zones")
     for zone_id in sorted(zones):
         zone = ET.SubElement(root, "Zone", {"id": str(zone_id), "name": f"zone {zone_id}"})
-        for template_id, name, elite, species in sorted(zones[zone_id], key=lambda row: row[0]):
+        for template_id, name, elite, species, hp, enrage_hp in sorted(zones[zone_id], key=lambda row: row[0]):
             ET.SubElement(
                 zone,
                 "Monster",
@@ -442,7 +506,8 @@ def build_monsters(dc_dir: Path, out_dir: Path, lang: str) -> None:
                     "name": name,
                     "id": str(template_id),
                     "isBoss": elite,
-                    "hp": "0",
+                    "hp": str(hp),
+                    "enrageHp": str(enrage_hp),
                     "speciesId": str(species),
                 },
             )
@@ -544,10 +609,21 @@ def write_hashes(out_dir: Path, hashes_path: Path) -> None:
     hashes: dict[str, str] = {}
     for path in sorted(p for p in out_dir.rglob("*") if p.is_file()):
         rel = path.relative_to(out_dir).as_posix()
-        if rel.startswith("opcodes/"):
+        if (
+            rel == DATABASE_HASH_FILE_NAME
+            or rel == "README.md"
+            or rel.startswith(".git/")
+            or rel.startswith(".github/")
+            or rel.startswith("opcodes/")
+        ):
             continue
         hashes[rel] = hashlib.sha256(path.read_bytes()).hexdigest()
-    hashes_path.write_text(json.dumps(hashes, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
+    text = json.dumps(hashes, indent=2, ensure_ascii=False) + "\n"
+    hashes_path.write_text(text, encoding="utf-8")
+
+    hosted_hashes_path = out_dir / DATABASE_HASH_FILE_NAME
+    if hosted_hashes_path.resolve() != hashes_path.resolve():
+        hosted_hashes_path.write_text(text, encoding="utf-8")
 
 
 def main() -> int:

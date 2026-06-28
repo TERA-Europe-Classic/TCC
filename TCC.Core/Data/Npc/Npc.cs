@@ -162,7 +162,9 @@ public class Npc : ThreadSafeObservableObject, IDisposable
         IsBoss = boss;
         Visible = visible;
         CurrentHP = MaxHP;
-        EnragePattern = ep ?? new EnragePattern(10, 36);
+        EnragePattern = ep ?? (monster.EnrageHP > 0
+            ? new EnragePattern(monster.MaxHP, monster.EnrageHP, 36)
+            : new EnragePattern(10, 36));
         TimerPattern = tp;
         TimerPattern?.SetTarget(this);
         //if (IsPhase1Dragon)
