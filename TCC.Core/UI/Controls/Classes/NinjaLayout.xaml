@@ -6,7 +6,11 @@
              xmlns:controls="clr-namespace:Nostrum.WPF.Controls;assembly=Nostrum.WPF"
              xmlns:skills="clr-namespace:TCC.UI.Controls.Skills"
              xmlns:classManagers="clr-namespace:TCC.ViewModels.ClassManagers"
+             xmlns:converters="clr-namespace:TCC.UI.Converters"
              mc:Ignorable="d" Loaded="NinjaLayout_OnLoaded" d:DataContext="{d:DesignInstance classManagers:NinjaLayoutViewModel}">
+    <UserControl.Resources>
+        <converters:ClassSkillSlotTransformConverter x:Key="ClassSkillSlotTransformConverter" />
+    </UserControl.Resources>
     <Grid Width="Auto" Margin="50 10 50 90" Name="Root" ClipToBounds="False">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
@@ -76,36 +80,6 @@
                 </Grid>
                 <Path Data="{StaticResource SvgClassNinja}" Margin="19" Opacity=".3"/>
             </Grid>
-            <Border BorderBrush="#89a" BorderThickness="1" Width="51" Height="51" Background="{StaticResource RevampBackgroundGradientBrush}"
-              RenderTransformOrigin=".5 .5" Effect="{StaticResource DropShadow}"
-              Opacity=".7">
-                <FrameworkElement.RenderTransform>
-                    <TransformGroup>
-                        <RotateTransform Angle="45"/>
-                        <TranslateTransform X="45" Y="45" />
-                    </TransformGroup>
-                </FrameworkElement.RenderTransform>
-            </Border>
-            <Border BorderBrush="#89a" BorderThickness="1" Width="51" Height="51"
-              Background="{StaticResource RevampBackgroundGradientBrush}" RenderTransformOrigin=".5 .5" Effect="{StaticResource DropShadow}"
-              Opacity=".7">
-                <FrameworkElement.RenderTransform>
-                    <TransformGroup>
-                        <RotateTransform Angle="45"/>
-                        <TranslateTransform X="-45" Y="45" />
-                    </TransformGroup>
-                </FrameworkElement.RenderTransform>
-            </Border>
-            <Border BorderBrush="#89a" BorderThickness="1" Width="51" Height="51"
-              Background="{StaticResource RevampBackgroundGradientBrush}" RenderTransformOrigin=".5 .5" Effect="{StaticResource DropShadow}"
-              Opacity=".7">
-                <FrameworkElement.RenderTransform>
-                    <TransformGroup>
-                        <RotateTransform Angle="45"/>
-                        <TranslateTransform X="0" Y="90" />
-                    </TransformGroup>
-                </FrameworkElement.RenderTransform>
-            </Border>
             <ItemsControl ItemsSource="{Binding ExtraSkills}"
                           AlternationCount="3"
                           HorizontalAlignment="Center"
@@ -121,32 +95,33 @@
                         <Setter Property="VerticalAlignment" Value="Center" />
                         <Setter Property="RenderTransform">
                             <Setter.Value>
-                                <TranslateTransform X="45" Y="45" />
+                                <MultiBinding Converter="{StaticResource ClassSkillSlotTransformConverter}">
+                                    <Binding Path="ItemsSource.Count"
+                                             RelativeSource="{RelativeSource AncestorType=ItemsControl}" />
+                                    <Binding Path="(ItemsControl.AlternationIndex)"
+                                             RelativeSource="{RelativeSource Self}" />
+                                </MultiBinding>
                             </Setter.Value>
                         </Setter>
-                        <Style.Triggers>
-                            <DataTrigger Binding="{Binding (ItemsControl.AlternationIndex), RelativeSource={RelativeSource Self}}"
-                                         Value="1">
-                                <Setter Property="RenderTransform">
-                                    <Setter.Value>
-                                        <TranslateTransform X="-45" Y="45" />
-                                    </Setter.Value>
-                                </Setter>
-                            </DataTrigger>
-                            <DataTrigger Binding="{Binding (ItemsControl.AlternationIndex), RelativeSource={RelativeSource Self}}"
-                                         Value="2">
-                                <Setter Property="RenderTransform">
-                                    <Setter.Value>
-                                        <TranslateTransform X="0" Y="90" />
-                                    </Setter.Value>
-                                </Setter>
-                            </DataTrigger>
-                        </Style.Triggers>
                     </Style>
                 </ItemsControl.ItemContainerStyle>
                 <ItemsControl.ItemTemplate>
                     <DataTemplate>
-                        <skills:RhombFixedSkillControl />
+                        <Grid Width="51" Height="51">
+                            <Border BorderBrush="#89a"
+                                    BorderThickness="1"
+                                    Width="51"
+                                    Height="51"
+                                    Background="{StaticResource RevampBackgroundGradientBrush}"
+                                    RenderTransformOrigin=".5 .5"
+                                    Effect="{StaticResource DropShadow}"
+                                    Opacity=".7">
+                                <FrameworkElement.RenderTransform>
+                                    <RotateTransform Angle="45" />
+                                </FrameworkElement.RenderTransform>
+                            </Border>
+                            <skills:RhombFixedSkillControl />
+                        </Grid>
                     </DataTemplate>
                 </ItemsControl.ItemTemplate>
             </ItemsControl>

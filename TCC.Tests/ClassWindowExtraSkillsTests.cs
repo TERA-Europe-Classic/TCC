@@ -1,4 +1,5 @@
 using System.Xml.Linq;
+using TCC.UI.Converters;
 
 namespace TCC.Tests;
 
@@ -102,6 +103,17 @@ public class ClassWindowExtraSkillsTests
             configurableSlots!.Descendants(),
             element => element.Name.LocalName == "RhombFixedSkillControl");
 
+        var classSkillSlotBorders = layout
+            .Descendants()
+            .Where(element =>
+                element.Name.LocalName == "Border"
+                && (string?)element.Attribute("Width") == "51"
+                && (string?)element.Attribute("Height") == "51")
+            .ToList();
+
+        Assert.Single(classSkillSlotBorders);
+        Assert.Contains(classSkillSlotBorders[0], configurableSlots.Descendants());
+
         var fixedBindings = layout
             .Descendants()
             .Where(element => element.Name.LocalName is "RhombFixedSkillControl" or "RhombSkillEffectControl")
@@ -126,6 +138,25 @@ public class ClassWindowExtraSkillsTests
 
         Assert.Contains("DefaultClassSkillIds", source);
         Assert.Contains("[80200, 150700, 230100]", source);
+    }
+
+    [Theory]
+    [InlineData(1, 0, 0, 90)]
+    [InlineData(2, 0, 45, 45)]
+    [InlineData(2, 1, -45, 45)]
+    [InlineData(3, 0, 45, 45)]
+    [InlineData(3, 1, -45, 45)]
+    [InlineData(3, 2, 0, 90)]
+    public void NinjaClassSkillSlotsCompactAroundActualConfiguredSkillCount(
+        int skillCount,
+        int skillIndex,
+        double expectedX,
+        double expectedY)
+    {
+        var offset = ClassSkillSlotTransformConverter.GetOffset(skillCount, skillIndex);
+
+        Assert.Equal(expectedX, offset.X);
+        Assert.Equal(expectedY, offset.Y);
     }
 
     private static DirectoryInfo FindRepoRoot()
