@@ -8,6 +8,11 @@ import generate_tcc_classicplus_data as generator
 
 
 class ClassicPlusGeneratorTests(unittest.TestCase):
+    def test_parse_calc_decimal_accepts_comma_and_precision_forms(self):
+        self.assertEqual(generator.parse_calc_decimal("0", "6"), 0.6)
+        self.assertEqual(generator.parse_calc_decimal("123", "0"), 123.0)
+        self.assertEqual(generator.parse_calc_decimal("0.15", "3"), 0.15)
+
     def test_build_items_removes_apex_awaken_and_over_level_cap_items(self):
         with tempfile.TemporaryDirectory() as temp_dir:
             root = Path(temp_dir)
@@ -227,6 +232,137 @@ class ClassicPlusGeneratorTests(unittest.TestCase):
             self.assertNotIn("$tickInterval", generated)
             self.assertNotIn("$time", generated)
 
+    def test_build_hotdot_resolves_calc_value_multiple_placeholders(self):
+        with tempfile.TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            dc_dir = root / "dc"
+            out_dir = root / "out"
+            (dc_dir / "StrSheet_Abnormality").mkdir(parents=True)
+            (dc_dir / "AbnormalityIconData").mkdir(parents=True)
+            (dc_dir / "Abnormality").mkdir(parents=True)
+
+            (dc_dir / "StrSheet_Abnormality" / "StrSheet_Abnormality-00000.xml").write_text(
+                """<?xml version="1.0" encoding="utf-8"?>
+<StrSheet_Abnormality>
+  <String id="10154030" name="Focus" tooltip="Skill damage increases by $calcValue(multiple,162,0,6)." />
+</StrSheet_Abnormality>
+""",
+                encoding="utf-8",
+            )
+            (dc_dir / "AbnormalityIconData" / "AbnormalityIconData-00000.xml").write_text(
+                """<?xml version="1.0" encoding="utf-8"?>
+<AbnormalityIconData>
+  <Icon abnormalityId="10154030" iconName="Icon_Skills.C12_AtkUpBuff" />
+</AbnormalityIconData>
+""",
+                encoding="utf-8",
+            )
+            (dc_dir / "Abnormality" / "Abnormality-00000.xml").write_text(
+                """<?xml version="1.0" encoding="utf-8"?>
+<Abnormality>
+  <Abnormal id="10154030" property="4" isBuff="true" infinity="true" time="12000" kind="1802" isShow="true">
+    <AbnormalityEffect type="162" value="1.05" tickInterval="0" />
+  </Abnormal>
+</Abnormality>
+""",
+                encoding="utf-8",
+            )
+
+            generator.build_hotdot(dc_dir, out_dir, "EU-EN")
+
+            generated = (out_dir / "hotdot" / "hotdot-EU-EN.tsv").read_text(encoding="utf-8")
+            self.assertIn("Skill damage increases by 3%.", generated)
+            self.assertNotIn("$calcValue", generated)
+
+    def test_build_hotdot_resolves_calc_value_heal_placeholders(self):
+        with tempfile.TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            dc_dir = root / "dc"
+            out_dir = root / "out"
+            (dc_dir / "StrSheet_Abnormality").mkdir(parents=True)
+            (dc_dir / "AbnormalityIconData").mkdir(parents=True)
+            (dc_dir / "Abnormality").mkdir(parents=True)
+
+            (dc_dir / "StrSheet_Abnormality" / "StrSheet_Abnormality-00000.xml").write_text(
+                """<?xml version="1.0" encoding="utf-8"?>
+<StrSheet_Abnormality>
+  <String id="800100" name="Regeneration Circle I" tooltip="Recovers HP by $calcValue(heal,51,123,0) every $H_W_GOOD$tickInterval$COLOR_END." />
+</StrSheet_Abnormality>
+""",
+                encoding="utf-8",
+            )
+            (dc_dir / "AbnormalityIconData" / "AbnormalityIconData-00000.xml").write_text(
+                """<?xml version="1.0" encoding="utf-8"?>
+<AbnormalityIconData>
+  <Icon abnormalityId="800100" iconName="Icon_Skills.HealingWind_Tex" />
+</AbnormalityIconData>
+""",
+                encoding="utf-8",
+            )
+            (dc_dir / "Abnormality" / "Abnormality-00000.xml").write_text(
+                """<?xml version="1.0" encoding="utf-8"?>
+<Abnormality>
+  <Abnormal id="800100" property="4" isBuff="true" infinity="false" time="10000" kind="37" isShow="true">
+    <AbnormalityEffect type="51" value="123" tickInterval="2" />
+  </Abnormal>
+</Abnormality>
+""",
+                encoding="utf-8",
+            )
+
+            generator.build_hotdot(dc_dir, out_dir, "EU-EN")
+
+            generated = (out_dir / "hotdot" / "hotdot-EU-EN.tsv").read_text(encoding="utf-8")
+            self.assertIn("Recovers HP by 123 every $H_W_GOOD2$COLOR_END.", generated)
+            self.assertNotIn("$calcValue", generated)
+
+    def test_build_hotdot_resolves_parameter_backed_calc_value_placeholders(self):
+        with tempfile.TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            dc_dir = root / "dc"
+            out_dir = root / "out"
+            (dc_dir / "StrSheet_Abnormality").mkdir(parents=True)
+            (dc_dir / "AbnormalityIconData").mkdir(parents=True)
+            (dc_dir / "Abnormality").mkdir(parents=True)
+
+            (dc_dir / "StrSheet_Abnormality" / "StrSheet_Abnormality-00000.xml").write_text(
+                """<?xml version="1.0" encoding="utf-8"?>
+<StrSheet_Abnormality>
+  <String id="200930" name="Pledge of Protection I" tooltip="Physical resistance increases by $calcValue(multiple,1003,0.15,3)." />
+  <String id="10153142" name="Death Touch" tooltip="Physical resistance decreases by $calcValue(multiple,1003,0,3)." />
+</StrSheet_Abnormality>
+""",
+                encoding="utf-8",
+            )
+            (dc_dir / "AbnormalityIconData" / "AbnormalityIconData-00000.xml").write_text(
+                """<?xml version="1.0" encoding="utf-8"?>
+<AbnormalityIconData>
+  <Icon abnormalityId="200930" iconName="Icon_Skills.VowOfProtection_Tex" />
+</AbnormalityIconData>
+""",
+                encoding="utf-8",
+            )
+            (dc_dir / "Abnormality" / "Abnormality-00000.xml").write_text(
+                """<?xml version="1.0" encoding="utf-8"?>
+<Abnormality>
+  <Abnormal id="200930" property="4" isBuff="true" infinity="true" time="1000" kind="17" isShow="true">
+    <AbnormalityEffect type="1003" value="0" tickInterval="0" />
+  </Abnormal>
+  <Abnormal id="10153142" property="1" isBuff="false" infinity="false" time="20000" kind="22409" isShow="true">
+    <AbnormalityEffect type="4" value="0.88" tickInterval="0" />
+  </Abnormal>
+</Abnormality>
+""",
+                encoding="utf-8",
+            )
+
+            generator.build_hotdot(dc_dir, out_dir, "EU-EN")
+
+            generated = (out_dir / "hotdot" / "hotdot-EU-EN.tsv").read_text(encoding="utf-8")
+            self.assertIn("Physical resistance increases by 15%.", generated)
+            self.assertIn("Physical resistance decreases by 30%.", generated)
+            self.assertNotIn("$calcValue", generated)
+
     def test_build_hotdot_treats_only_icon_abnormalities_as_visible(self):
         with tempfile.TemporaryDirectory() as temp_dir:
             root = Path(temp_dir)
@@ -402,6 +538,19 @@ class ClassicPlusGeneratorTests(unittest.TestCase):
             self.assertNotIn(".github/", packaged_hashes)
             self.assertNotIn("opcodes/", packaged_hashes)
             self.assertNotIn("README.md", packaged_hashes)
+
+    def test_audit_generated_output_rejects_unresolved_datacenter_placeholders(self):
+        with tempfile.TemporaryDirectory() as temp_dir:
+            out_dir = Path(temp_dir)
+            (out_dir / "hotdot").mkdir()
+            (out_dir / "hotdot" / "hotdot-EU-EN.tsv").write_text(
+                "10154030\t162\tBuff\tFalse\tseta\t12000\t0\t1.05\tFocus\t1802\tFocus\t"
+                "Skill damage increases by $calcValue(multiple,162,0,6).\ticon\ticon\tTrue\n",
+                encoding="utf-8",
+            )
+
+            with self.assertRaisesRegex(ValueError, "unresolved datacenter placeholders"):
+                generator.audit_generated_output(out_dir)
 
 
 if __name__ == "__main__":

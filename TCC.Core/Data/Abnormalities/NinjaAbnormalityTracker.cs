@@ -38,6 +38,7 @@ public class NinjaAbnormalityTracker : AbnormalityTracker
         if (!TryGetClassViewModel<NinjaLayoutViewModel>(out var vm)) return;
 
         vm.FocusOn = true;
+        vm.FocusStacks = p.Stacks;
     }
 
     private static void CheckFocusRefresh(S_ABNORMALITY_REFRESH p)
@@ -46,6 +47,7 @@ public class NinjaAbnormalityTracker : AbnormalityTracker
         if (!TryGetClassViewModel<NinjaLayoutViewModel>(out var vm)) return;
 
         vm.FocusOn = true;
+        vm.FocusStacks = p.Stacks;
     }
 
     private static void CheckFocusEnd(S_ABNORMALITY_END p)
@@ -54,6 +56,7 @@ public class NinjaAbnormalityTracker : AbnormalityTracker
         if (!TryGetClassViewModel<NinjaLayoutViewModel>(out var vm)) return;
 
         vm.FocusOn = false;
+        vm.FocusStacks = 0;
     }
 
     private static void CheckInnerHarmonyBegin(S_ABNORMALITY_BEGIN p)

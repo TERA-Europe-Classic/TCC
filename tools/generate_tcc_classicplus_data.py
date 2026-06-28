@@ -53,6 +53,10 @@ EFFECT_TYPE_NAMES = {
 }
 
 PLACEHOLDER_RE = re.compile(r"\$(value|tickInterval|time)(\d*)")
+CALC_VALUE_RE = re.compile(r"\$calcValue\(([^)]*)\)")
+UNRESOLVED_DATACENTER_TOKEN_RE = re.compile(r"\$(?:calcValue|value\d*|tickInterval\d*|time\d*)")
+DELTA_PERCENT_EFFECT_TYPES = {"162"}
+PARAMETER_VALUE_EFFECT_TYPES = {"1003"}
 
 
 def local_name(tag: str) -> str:
@@ -134,6 +138,10 @@ def format_effect_value(value: str | None) -> str:
     return format_number(value)
 
 
+def format_percent(value: float) -> str:
+    return f"{format_number(str(value))}%"
+
+
 def format_time_ms(value: str | None) -> str:
     milliseconds = to_int(value)
     if milliseconds <= 0:
@@ -148,9 +156,60 @@ def format_time_ms(value: str | None) -> str:
     return format_number(value)
 
 
+def find_effect(effects: list[ET.Element], effect_type: str) -> ET.Element | None:
+    return next((effect for effect in effects if effect.get("type") == effect_type), None)
+
+
+def parse_calc_decimal(whole: str | None, fraction: str | None) -> float:
+    left = (whole or "0").strip()
+    right = (fraction or "0").strip()
+    if "." in left:
+        return float(left)
+    sign = "-"
+    if left.startswith("-"):
+        left = left[1:]
+    else:
+        sign = ""
+    return float(f"{sign}{left}.{right}")
+
+
+def format_calc_value(mode: str, effect_type: str, parameter: float, effects: list[ET.Element]) -> str:
+    effect = find_effect(effects, effect_type)
+    raw_value = effect.get("value") if effect is not None else None
+
+    try:
+        effect_value = float(raw_value) if raw_value not in (None, "") else parameter
+    except ValueError:
+        return raw_value or format_number(str(parameter))
+
+    if mode == "heal":
+        return format_number(str(abs(effect_value)))
+
+    if mode == "multiple":
+        if effect_type in PARAMETER_VALUE_EFFECT_TYPES and (raw_value in (None, "") or effect_value == 0):
+            return format_effect_value(str(parameter))
+        if effect_type in DELTA_PERCENT_EFFECT_TYPES and 0.5 <= effect_value <= 3:
+            return format_percent((effect_value - 1) * 100 * parameter)
+        if -3 < effect_value < 0:
+            return format_percent(abs(effect_value) * 100 * parameter)
+        return format_number(str(abs(effect_value) * parameter))
+
+    return format_number(str(effect_value))
+
+
 def replace_tooltip_placeholders(tooltip: str, abnormal_time: str | None, effects: list[ET.Element]) -> str:
     if "$" not in tooltip:
         return tooltip
+
+    def calc_value_replacement(match: re.Match[str]) -> str:
+        args = [arg.strip() for arg in match.group(1).split(",")]
+        if len(args) != 4:
+            return match.group(0)
+
+        mode = args[0]
+        effect_type = args[1]
+        parameter = parse_calc_decimal(args[2], args[3])
+        return format_calc_value(mode, effect_type, parameter, effects)
 
     def replacement(match: re.Match[str]) -> str:
         token = match.group(1)
@@ -171,6 +230,7 @@ def replace_tooltip_placeholders(tooltip: str, abnormal_time: str | None, effect
             return format_number(effect.get("tickInterval"))
         return format_effect_value(effect.get("value"))
 
+    tooltip = CALC_VALUE_RE.sub(calc_value_replacement, tooltip)
     return PLACEHOLDER_RE.sub(replacement, tooltip)
 
 
@@ -685,6 +745,29 @@ def scrub_disabled_content(out_dir: Path) -> None:
             scrub_xml(path)
 
 
+def audit_generated_output(out_dir: Path) -> None:
+    failures: list[str] = []
+    for path in sorted(out_dir.rglob("*")):
+        if not path.is_file():
+            continue
+        rel = path.relative_to(out_dir).as_posix()
+        if rel == DATABASE_HASH_FILE_NAME or rel.startswith(".git/") or rel.startswith(".github/"):
+            continue
+        if path.suffix.lower() not in {".tsv", ".xml", ".txt"}:
+            continue
+
+        text = path.read_text(encoding="utf-8")
+        for line_no, line in enumerate(text.splitlines(), 1):
+            if UNRESOLVED_DATACENTER_TOKEN_RE.search(line):
+                failures.append(f"{rel}:{line_no}: {line[:160]}")
+                if len(failures) >= 20:
+                    break
+
+    if failures:
+        details = "\n".join(failures)
+        raise ValueError(f"Generated data contains unresolved datacenter placeholders:\n{details}")
+
+
 def write_hashes(out_dir: Path, hashes_path: Path) -> None:
     hashes: dict[str, str] = {}
     for path in sorted(p for p in out_dir.rglob("*") if p.is_file()):
@@ -735,6 +818,7 @@ def main() -> int:
     build_monster_override(out_dir)
     build_servers_file(out_dir)
     scrub_disabled_content(out_dir)
+    audit_generated_output(out_dir)
     write_hashes(out_dir, hashes_path)
     print(f"Generated Classic+ TCC data in {out_dir}")
     print(f"Wrote hashes to {hashes_path}")

@@ -10,6 +10,7 @@ public class NinjaLayoutViewModel : BaseClassLayoutViewModel
 {
     private const uint InnerHarmonySkillId = 230100;
     private bool _focusOn;
+    private int _focusStacks;
 
     protected override IReadOnlyList<uint> DefaultClassSkillIds { get; } = [80200, 150700, 230100];
 
@@ -17,6 +18,12 @@ public class NinjaLayoutViewModel : BaseClassLayoutViewModel
     {
         get => _focusOn;
         set => RaiseAndSetIfChanged(value, ref _focusOn);
+    }
+
+    public int FocusStacks
+    {
+        get => _focusStacks;
+        set => RaiseAndSetIfChanged(value, ref _focusStacks);
     }
 
     public NinjaLayoutViewModel()
