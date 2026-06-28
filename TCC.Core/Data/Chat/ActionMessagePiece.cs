@@ -2,7 +2,6 @@
 using System.Linq;
 using System.Windows.Input;
 using Nostrum.WPF;
-using TCC.Interop.Proxy;
 
 namespace TCC.Data.Chat;
 
@@ -37,6 +36,6 @@ public class ActionMessagePiece : SimpleMessagePiece
     public ActionMessagePiece(string text, string action) : base(text)
     {
         ChatLinkAction = action;
-        ClickCommand = new RelayCommand(_ => StubInterface.Instance.StubClient.ChatLinkAction(ChatLinkAction));
+        ClickCommand = new RelayCommand(_ => { });
     }
 }

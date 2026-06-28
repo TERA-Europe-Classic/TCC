@@ -64,7 +64,28 @@ public class ClassWindowExtraSkillsTests
         Assert.Contains(
             style.Descendants(),
             element => element.Name.LocalName == "DataTrigger"
-                       && (string?)element.Attribute("Binding") == "{Binding IsMouseOver, RelativeSource={RelativeSource AncestorType=Grid}}");
+                       && (string?)element.Attribute("Binding") == "{Binding IsMouseOver, RelativeSource={RelativeSource AncestorType=widgets1:TccWidget}}");
+
+        Assert.Contains(
+            layout.Descendants(),
+            element =>
+                element.Name.LocalName == "Grid"
+                && (string?)element.Attribute("{http://schemas.microsoft.com/winfx/2006/xaml}Name") == "ClassWindowHoverRoot"
+                && (string?)element.Attribute("Background") == "Transparent");
+
+        Assert.Contains(
+            layout.Descendants(),
+            element =>
+                element.Name.LocalName == "Grid"
+                && (string?)element.Attribute("{http://schemas.microsoft.com/winfx/2006/xaml}Name") == "WindowContent"
+                && (string?)element.Attribute("Background") == "Transparent");
+
+        Assert.Contains(
+            layout.Descendants(),
+            element =>
+                element.Name.LocalName == "Button"
+                && (string?)element.Attribute("Panel.ZIndex") == "10"
+                && (string?)element.Attribute("Style") == "{StaticResource ClassSkillConfigButtonStyle}");
     }
 
     [Fact]
@@ -140,6 +161,64 @@ public class ClassWindowExtraSkillsTests
         Assert.Contains("[80200, 150700, 230100]", source);
     }
 
+    [Fact]
+    public void SorcererNativeSkillSlotsUseConfigurableClassSkillList()
+    {
+        var layout = XDocument.Load(Path.Combine(
+            FindRepoRoot().FullName,
+            "TCC.Core",
+            "UI",
+            "Controls",
+            "Classes",
+            "SorcererLayout.xaml"));
+
+        var configurableSlots = layout
+            .Descendants()
+            .SingleOrDefault(element =>
+                element.Name.LocalName == "ItemsControl"
+                && (string?)element.Attribute("ItemsSource") == "{Binding ExtraSkills}");
+
+        Assert.NotNull(configurableSlots);
+        Assert.Contains(
+            configurableSlots!.Descendants(),
+            element => element.Name.LocalName == "RhombFixedSkillControl");
+        Assert.Contains(
+            configurableSlots.Descendants(),
+            element =>
+                element.Name.LocalName == "RhombSkillEffectControl"
+                && (string?)element.Attribute("DataContext") == "{Binding ManaBoost, RelativeSource={RelativeSource AncestorType=UserControl}}");
+        Assert.Contains(
+            configurableSlots.Descendants(),
+            element =>
+                element.Name.LocalName == "RhombSkillEffectControl"
+                && (string?)element.Attribute("DataContext") == "{Binding BurstOfCelerity, RelativeSource={RelativeSource AncestorType=UserControl}}");
+
+        var fixedBindings = layout
+            .Descendants()
+            .Where(element => element.Name.LocalName is "RhombFixedSkillControl" or "RhombSkillEffectControl")
+            .Select(element => (string?)element.Attribute("DataContext"))
+            .Where(value => value != null)
+            .ToList();
+
+        Assert.Contains("{Binding Fusion}", fixedBindings);
+        Assert.DoesNotContain("{Binding ManaBoost}", fixedBindings);
+        Assert.DoesNotContain("{Binding BurstOfCelerity}", fixedBindings);
+    }
+
+    [Fact]
+    public void SorcererDefaultsToManaBoostAndBurstOfCelerityClassWindowSkills()
+    {
+        var source = File.ReadAllText(Path.Combine(
+            FindRepoRoot().FullName,
+            "TCC.Core",
+            "ViewModels",
+            "ClassManagers",
+            "SorcererLayoutViewModel.cs"));
+
+        Assert.Contains("DefaultClassSkillIds", source);
+        Assert.Contains("[340200, 240100]", source);
+    }
+
     [Theory]
     [InlineData(1, 0, 0, 90)]
     [InlineData(2, 0, 45, 45)]
@@ -154,6 +233,22 @@ public class ClassWindowExtraSkillsTests
         double expectedY)
     {
         var offset = ClassSkillSlotTransformConverter.GetOffset(skillCount, skillIndex);
+
+        Assert.Equal(expectedX, offset.X);
+        Assert.Equal(expectedY, offset.Y);
+    }
+
+    [Theory]
+    [InlineData(1, 0, 0, 0)]
+    [InlineData(2, 0, -42, 0)]
+    [InlineData(2, 1, 42, 0)]
+    public void SorcererClassSkillSlotsCompactAroundActualConfiguredSkillCount(
+        int skillCount,
+        int skillIndex,
+        double expectedX,
+        double expectedY)
+    {
+        var offset = ClassSkillSlotTransformConverter.GetOffset("Sorcerer", skillCount, skillIndex);
 
         Assert.Equal(expectedX, offset.X);
         Assert.Equal(expectedY, offset.Y);

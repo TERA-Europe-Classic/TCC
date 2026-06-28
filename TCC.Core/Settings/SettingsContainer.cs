@@ -19,7 +19,6 @@ namespace TCC.Settings;
 public class SettingsContainer
 {
     private string _lastLanguage;
-    private bool _chatEnabled;
     private bool _enableProxy;
     private LootDistributionWindowSettings _lootDistributionWindowSettings;
 
@@ -123,18 +122,13 @@ public class SettingsContainer
 
     public bool ChatEnabled
     {
-        get => ChatWindowsSettings.Count > 0 ? ChatWindowsSettings[0].Enabled : _chatEnabled;
+        get => false;
         set
         {
-            ChatSettings.Enabled = value;
+            ChatSettings.Enabled = false;
             if (ChatWindowsSettings.Count > 0)
             {
-                if (ChatWindowsSettings[0].Enabled == value) return;
-                foreach (var x in ChatWindowsSettings) x.Enabled = value;
-            }
-            else
-            {
-                _chatEnabled = value;
+                foreach (var x in ChatWindowsSettings) x.Enabled = false;
             }
         }
     }

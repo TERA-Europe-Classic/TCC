@@ -148,11 +148,7 @@ public static class WindowManager
         CivilUnrestWindow = new CivilUnrestWindow(ViewModels.CivilUnrestVM);
         if (CivilUnrestWindow.WindowSettings?.Enabled == true) CivilUnrestWindow.Show();
 
-        LfgListWindow = new LfgListWindow(ViewModels.LfgVM);
-
         ViewModels.PlayerMenuVM = new PlayerMenuViewModel();
-
-        ChatManager.Start();
     }
 
     public static void ReloadPositions()

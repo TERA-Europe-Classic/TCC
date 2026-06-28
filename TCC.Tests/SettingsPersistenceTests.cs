@@ -24,6 +24,18 @@ public class SettingsPersistenceTests
         Assert.True(settings.AbnormalitySettings.Self.ShowAll);
     }
 
+    [Fact]
+    public void ChatSettingCannotBeReenabledFromPersistedConfig()
+    {
+        var settings = new TCC.Settings.SettingsContainer
+        {
+            ChatEnabled = true
+        };
+
+        Assert.False(settings.ChatEnabled);
+        Assert.False(settings.ChatSettings.Enabled);
+    }
+
     private static DirectoryInfo FindRepoRoot()
     {
         var current = new DirectoryInfo(AppContext.BaseDirectory);

@@ -1,4 +1,5 @@
-﻿using System.Diagnostics;
+﻿using System.Collections.Generic;
+using System.Diagnostics;
 using TCC.Data;
 using TCC.Data.Abnormalities;
 using TCC.Data.Skills;
@@ -8,6 +9,10 @@ namespace TCC.ViewModels.ClassManagers;
 
 public class SorcererLayoutViewModel : BaseClassLayoutViewModel
 {
+    private const string FusionIconName = "icon_skills.fusion_tex";
+    private const string ElementalFusionIconName = "icon_skills.elementfusion_tex";
+    protected override IReadOnlyList<uint> DefaultClassSkillIds { get; } = [340200, 240100];
+
     private readonly Stopwatch _sw;
     private long _latestCooldown;
 
@@ -61,6 +66,8 @@ public class SorcererLayoutViewModel : BaseClassLayoutViewModel
         Game.DB.SkillsDatabase.TryGetSkill(360200, Class.Sorcerer, out var primeFlame);
         Game.DB.SkillsDatabase.TryGetSkill(360400, Class.Sorcerer, out var iceberg);
         Game.DB.SkillsDatabase.TryGetSkill(360300, Class.Sorcerer, out var arcaneStorm);
+        fusion.IconName = FusionIconName;
+        fusionBoost.IconName = ElementalFusionIconName;
 
         PrimeFlame = primeFlame; //fire ice
         Iceberg = iceberg; //ice arcane

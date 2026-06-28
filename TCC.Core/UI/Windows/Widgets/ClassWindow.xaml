@@ -66,7 +66,7 @@
             <Setter Property="HorizontalAlignment" Value="Left" />
             <Setter Property="VerticalAlignment" Value="Top" />
             <Style.Triggers>
-                <DataTrigger Binding="{Binding IsMouseOver, RelativeSource={RelativeSource AncestorType=Grid}}"
+                <DataTrigger Binding="{Binding IsMouseOver, RelativeSource={RelativeSource AncestorType=widgets1:TccWidget}}"
                              Value="True">
                     <DataTrigger.EnterActions>
                         <BeginStoryboard>
@@ -108,7 +108,7 @@
         />
 
     </widgets1:TccWidget.Resources>
-    <Grid ClipToBounds="False">
+    <Grid x:Name="ClassWindowHoverRoot" Background="Transparent" ClipToBounds="False">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
             <RowDefinition/>
@@ -126,6 +126,7 @@
         <Grid x:Name="WindowContent"
               Grid.Row="1"
               Margin="20"
+              Background="Transparent"
               HorizontalAlignment="Center">
             <Grid.RowDefinitions>
                 <RowDefinition />
@@ -141,6 +142,7 @@
                             HorizontalAlignment="Center" />
 
             <Button Grid.Row="0"
+                    Panel.ZIndex="10"
                     Margin="-4 -4 0 0"
                     Style="{StaticResource ClassSkillConfigButtonStyle}"
                     Visibility="{Binding CurrentManager.HasConfigurableSkillSlots, Converter={converters:BoolToVisibility}}"

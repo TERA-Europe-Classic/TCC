@@ -162,8 +162,7 @@
                     <LineBreak />
                     <LineBreak />
                     <Run Text=" - Game-driven" FontWeight="Bold" Foreground="White" />
-                    <Run Text=": click thru depends on ingame UI status;" />
-                    <Run Text=" requires proxy and modded S1UI_Chat2.gpk" Foreground="{StaticResource HpBrush}" />
+                    <Run Text=": click thru depends on ingame UI status" />
                 </TextBlock>
             </Grid>
         </ToolTip>
@@ -1411,7 +1410,7 @@
                     </Grid>
                 </TabItem>
                 <!-- Chat window -->
-                <TabItem>
+                <TabItem Visibility="Collapsed">
                     <TabItem.Header>
                         <Grid Height="30">
                             <Grid.ColumnDefinitions>
@@ -1969,9 +1968,6 @@
                             <settings:CheckboxSetting SettingName="Enable player menu"
                                                       IsEnabled="{Binding EnableProxy}"
                                                       IsOn="{Binding EnablePlayerMenu, Mode=TwoWay}"/>
-                            <settings:CheckboxSetting SettingName="Show ingame chat messages"
-                                                      IsEnabled="{Binding EnableProxy}"
-                                                      IsOn="{Binding ShowIngameChat, Mode=TwoWay}"/>
                         </StackPanel>
                         <StackPanel VerticalAlignment="Stretch" Grid.Column="1" Grid.RowSpan="2">
                             <Grid>
@@ -2018,8 +2014,6 @@
                             <settings:HotkeySetting SettingName="Configure skills" Value="{Binding SkillSettingsHotkey, Mode=TwoWay}" IsEnabled="{Binding UseHotkeys}"/>
                             <settings:HotkeySetting SettingName="Configure my buffs" Value="{Binding AbnormalSettingsHotkey, Mode=TwoWay}" IsEnabled="{Binding UseHotkeys}"/>
                             <settings:HotkeySetting SettingName="Dashboard" Value="{Binding DashboardHotkey, Mode=TwoWay}" IsEnabled="{Binding UseHotkeys}"/>
-                            <settings:HotkeySetting SettingName="Toggle clickable chat" Value="{Binding ForceClickableChatHotkey, Mode=TwoWay}" IsEnabled="{Binding UseHotkeys}"/>
-                            <settings:HotkeySetting SettingName="LFG window" Value="{Binding LfgHotkey, Mode=TwoWay}" IsEnabled="{Binding UseHotkeys}"/>
                             <settings:HotkeySetting SettingName="Loot window" Value="{Binding LootDistributionWindowSettings.ToggleHotkey, Mode=TwoWay}" IsEnabled="{Binding UseHotkeys}"/>
                             <settings:HotkeySetting SettingName="Return to lobby" Value="{Binding ReturnToLobbyHotkey, Mode=TwoWay}" IsEnabled="{Binding UseHotkeys}"/>
                             <settings:HotkeySetting SettingName="Toggle boundaries" Value="{Binding ToggleBoundariesHotkey, Mode=TwoWay}" IsEnabled="{Binding UseHotkeys}"/>
@@ -2186,39 +2180,6 @@
                                                        SelectedItem="{Binding FloatingButtonSettings.ClickThruMode, Mode=TwoWay}" />
 
                         </StackPanel>
-                        <!-- LFG window -->
-                        <StackPanel VerticalAlignment="Stretch" Grid.Column="0" Grid.Row="2">
-                            <ContentControl Template="{StaticResource SectionHeaderTemplate}" Content="LFG window" />
-                            <settings:CheckboxSetting SettingName="Enabled" IsOn="{Binding LfgWindowSettings.Enabled, Mode=TwoWay}">
-                                <settings:CheckboxSetting.ToolTip>
-                                    <Grid Margin="5">
-                                        <Border Style="{StaticResource RevampBorderStyle}" />
-                                        <TextBlock Foreground="LightGray" Margin="10" TextWrapping="Wrap"
-                                                   MaxWidth="200">
-                                            <Run Text="Enables/disables TCC LFG window." />
-                                        </TextBlock>
-                                    </Grid>
-                                </settings:CheckboxSetting.ToolTip>
-                            </settings:CheckboxSetting>
-
-                            <settings:CheckboxSetting SettingName="Hide trade listings"
-                                                      IsEnabled="{Binding LfgWindowSettings.Enabled}"
-                                                      IsOn="{Binding LfgWindowSettings.HideTradeListings, Mode=TwoWay}">
-                                <settings:CheckboxSetting.ToolTip>
-                                    <Grid Margin="5">
-                                        <Border Style="{StaticResource RevampBorderStyle}" />
-                                        <TextBlock Foreground="LightGray" Margin="10" TextWrapping="Wrap"
-                                                   MaxWidth="200">
-                                            <Run Text="Hides/shows trade LFGs." />
-                                        </TextBlock>
-                                    </Grid>
-                                </settings:CheckboxSetting.ToolTip>
-                            </settings:CheckboxSetting>
-                            <Button Style="{StaticResource SettingsButton}" 
-                                    Command="{Binding OpenConfigureLfgWindowCommand}"
-                                    Content="Configure LFG filter"/>
-                        </StackPanel>
-
                         <StackPanel VerticalAlignment="Stretch" Grid.Column="1">
                             <ContentControl Template="{StaticResource SectionHeaderTemplate}" 
                                             Content="Other settings" />
@@ -2644,26 +2605,6 @@
                                         Margin="5 0"
                                         Data="{StaticResource SvgGitHub}" MaxWidth="16" />
                                     <TextBlock Text="tcc-stub" Grid.Column="1" />
-                                </Grid>
-                            </Button>
-                            <Button Style="{StaticResource SettingsButton}" 
-                                    Command="{Binding BrowseUrlCommand}"
-                                    CommandParameter="https://github.com/Foglio1024/S1UI_chat2/blob/master/p75/S1UI_Chat2.gpk"
-                                    HorizontalContentAlignment="Left"
-                                    >
-                                <Grid Width="Auto" Height="Auto" Margin="0 0" HorizontalAlignment="Stretch"
-                                      VerticalAlignment="Center">
-                                    <Grid.ColumnDefinitions>
-                                        <ColumnDefinition Width="Auto" />
-                                        <ColumnDefinition />
-                                    </Grid.ColumnDefinitions>
-                                    <Path
-                                        Fill="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}"
-                                        HorizontalAlignment="Center"
-                                        VerticalAlignment="Center"
-                                        Margin="5 0"
-                                        Data="{StaticResource SvgGitHub}" MaxWidth="16" />
-                                    <TextBlock Text="S1UI_Chat2.gpk for TCC" Grid.Column="1" />
                                 </Grid>
                             </Button>
                             <Button Style="{StaticResource SettingsButton}" HorizontalContentAlignment="Left"

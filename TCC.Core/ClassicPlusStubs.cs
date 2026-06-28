@@ -109,9 +109,8 @@ namespace TCC.UI.Controls.Chat
 
 namespace TCC.UI.Windows
 {
-    // LfgFilterConfigWindow let the user pick LFG level filters before a
-    // RequestListings RPC. Stubbed window so the Settings "Configure filters"
-    // button still compiles; ShowDialog is a no-op.
+    // LfgFilterConfigWindow is kept only so old settings-related type
+    // references compile; ShowDialog is a no-op.
     public class LfgFilterConfigWindow : System.Windows.Window
     {
         public LfgFilterConfigWindow(object lfgVm) { _ = lfgVm; }

@@ -24,16 +24,11 @@ public partial class DataTemplates
         if (e.Key != Key.Enter) return;
 
         var lfg = (Listing)((FrameworkElement)sender).DataContext;
-        var msg = lfg.Message;
-        var isRaid = lfg.IsRaid;
 
         if (lfg.Temp) WindowManager.ViewModels.LfgVM.Listings.Remove(lfg);
 
-        StubInterface.Instance.StubClient.RegisterListing(msg, isRaid);
         Keyboard.ClearFocus();
         FocusManager.MakeUnfocusable(WindowManager.LfgListWindow.Handle);
-
-        Task.Delay(200).ContinueWith(_ => StubInterface.Instance.StubClient.RequestListings(App.Settings.LfgWindowSettings.MinLevel, App.Settings.LfgWindowSettings.MaxLevel));
     }
 
     private void LfgMessage_OnGotKeyboardFocus(object sender, KeyboardFocusChangedEventArgs e)

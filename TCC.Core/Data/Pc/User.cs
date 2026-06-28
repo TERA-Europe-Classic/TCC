@@ -276,8 +276,6 @@ public class User : ThreadSafeObservableObject
         });
         DeclineApplyCommand = new RelayCommand(_ =>
         {
-            StubInterface.Instance.StubClient.DeclineUserGroupApply(PlayerId, ServerId);
-            StubInterface.Instance.StubClient.RequestListingCandidates();
         });
         RequestInteractiveCommand = new RelayCommand(_ =>
         {

@@ -12,7 +12,7 @@ public class ClassSkillSlotTransformConverter : IMultiValueConverter
     {
         var count = ToInt(values.Length > 0 ? values[0] : null);
         var index = ToInt(values.Length > 1 ? values[1] : null);
-        var offset = GetOffset(count, index);
+        var offset = GetOffset(parameter as string, count, index);
         return new TranslateTransform(offset.X, offset.Y);
     }
 
@@ -30,6 +30,23 @@ public class ClassSkillSlotTransformConverter : IMultiValueConverter
             _ when index == 1 => new Point(-45, 45),
             _ when index >= 2 => new Point(0, 90),
             _ => new Point(45, 45)
+        };
+    }
+
+    public static Point GetOffset(string? profile, int count, int index)
+    {
+        return string.Equals(profile, "Sorcerer", StringComparison.OrdinalIgnoreCase)
+            ? GetSorcererOffset(count, index)
+            : GetOffset(count, index);
+    }
+
+    private static Point GetSorcererOffset(int count, int index)
+    {
+        return count switch
+        {
+            <= 1 => new Point(0, 0),
+            2 when index == 1 => new Point(42, 0),
+            _ => new Point(-42, 0)
         };
     }
 

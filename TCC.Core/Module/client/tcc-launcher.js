@@ -49,9 +49,6 @@ class TccLauncher
                 this.tryInstallRemover("S1UI_Abnormality.gpk", installer, "Buff bar");
                 this.tryInstallRemover("S1UI_PartyWindow.gpk", installer, "Party windows");
                 this.tryInstallRemover("S1UI_PartyWindowRaidInfo.gpk", installer, "Raid windows");
-                this.tryInstallRemover("S1UI_PartyBoard.gpk", installer, "LFG window");
-                this.tryInstallRemover("S1UI_PartyBoardMemberInfo.gpk", installer, "LFG details info");
-                this.tryInstallRemover("S1UI_Chat2.gpk", installer, "Chat");
                 this.tryInstallRemover("S1UI_DistributionWindow.gpk", installer, "Dice roll");
                 this.tryInstallRemover("S1UI_ProgressBar.gpk", installer, "Flight gauge");
                 return;
@@ -96,17 +93,6 @@ class TccLauncher
             if (settings.FlightGaugeWindowSettings.Enabled === true)
             {
                 this.tryInstallRemover("S1UI_ProgressBar.gpk", installer, "Flight gauge");
-            }
-            
-            if (settings.LfgWindowSettings.Enabled === true)
-            {
-                this.tryInstallRemover("S1UI_PartyBoard.gpk", installer, "LFG window");
-                this.tryInstallRemover("S1UI_PartyBoardMemberInfo.gpk", installer, "LFG details info");
-            }
-
-            if (settings.ChatEnabled === true)
-            {
-                this.tryInstallRemover("S1UI_Chat2.gpk", installer, "Chat");
             }
 
             if (settings.LootDistributionWindowSettings.Enabled === true) {

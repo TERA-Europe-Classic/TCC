@@ -121,35 +121,10 @@ public class ChatManager : TccWindowViewModel
 
     protected override void InstallHooks()
     {
-        PacketAnalyzer.Sniffer.NewConnection += OnConnected;
-        PacketAnalyzer.Sniffer.EndConnection += OnDisconnected;
-
-        PacketAnalyzer.Processor.Hook<S_CHAT>(OnChat);
-        PacketAnalyzer.Processor.Hook<S_PRIVATE_CHAT>(OnPrivateChat);
-        PacketAnalyzer.Processor.Hook<S_WHISPER>(OnWhisper);
-        PacketAnalyzer.Processor.Hook<S_JOIN_PRIVATE_CHANNEL>(OnJoinPrivateChannel);
-        PacketAnalyzer.Processor.Hook<S_LEAVE_PRIVATE_CHANNEL>(OnLeavePrivateChannel);
-        PacketAnalyzer.Processor.Hook<S_TRADE_BROKER_DEAL_SUGGESTED>(OnTradeBrokerDealSuggested);
-        PacketAnalyzer.Processor.Hook<S_OTHER_USER_APPLY_PARTY>(OnOtherUserApplyParty);
-        PacketAnalyzer.Processor.Hook<S_PARTY_MATCH_LINK>(OnPartyMatchLink);
-        PacketAnalyzer.Processor.Hook<S_PARTY_MEMBER_INFO>(OnPartyMemberInfo);
-        PacketAnalyzer.Processor.Hook<S_CREATURE_CHANGE_HP>(OnCreatureChangeHp);
-        PacketAnalyzer.Processor.Hook<S_PLAYER_CHANGE_EXP>(OnPlayerChangeExp);
     }
 
     protected override void RemoveHooks()
     {
-        PacketAnalyzer.Processor.Unhook<S_CHAT>(OnChat);
-        PacketAnalyzer.Processor.Unhook<S_PRIVATE_CHAT>(OnPrivateChat);
-        PacketAnalyzer.Processor.Unhook<S_WHISPER>(OnWhisper);
-        PacketAnalyzer.Processor.Unhook<S_JOIN_PRIVATE_CHANNEL>(OnJoinPrivateChannel);
-        PacketAnalyzer.Processor.Unhook<S_LEAVE_PRIVATE_CHANNEL>(OnLeavePrivateChannel);
-        PacketAnalyzer.Processor.Unhook<S_TRADE_BROKER_DEAL_SUGGESTED>(OnTradeBrokerDealSuggested);
-        PacketAnalyzer.Processor.Unhook<S_OTHER_USER_APPLY_PARTY>(OnOtherUserApplyParty);
-        PacketAnalyzer.Processor.Unhook<S_PARTY_MATCH_LINK>(OnPartyMatchLink);
-        PacketAnalyzer.Processor.Unhook<S_PARTY_MEMBER_INFO>(OnPartyMemberInfo);
-        PacketAnalyzer.Processor.Unhook<S_CREATURE_CHANGE_HP>(OnCreatureChangeHp);
-        PacketAnalyzer.Processor.Unhook<S_PLAYER_CHANGE_EXP>(OnPlayerChangeExp);
     }
 
     private void OnConnected(Server srv)

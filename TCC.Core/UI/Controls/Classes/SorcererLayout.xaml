@@ -6,7 +6,11 @@
              xmlns:elements="clr-namespace:TCC.UI.Controls.Classes.Elements"
              xmlns:skills="clr-namespace:TCC.UI.Controls.Skills"
              xmlns:classManagers="clr-namespace:TCC.ViewModels.ClassManagers"
+             xmlns:converters="clr-namespace:TCC.UI.Converters"
              mc:Ignorable="d" d:DataContext="{d:DesignInstance classManagers:SorcererLayoutViewModel}">
+    <UserControl.Resources>
+        <converters:ClassSkillSlotTransformConverter x:Key="ClassSkillSlotTransformConverter" />
+    </UserControl.Resources>
 
     <Grid Width="Auto" Margin="20" Name="Root" ClipToBounds="False">
         <Grid HorizontalAlignment="Center" Margin="0" ClipToBounds="False">
@@ -28,36 +32,69 @@
                                            IceBoostMargin="0 1 -5 0"
                                            />
             <skills:RhombFixedSkillControl DataContext="{Binding Fusion}" />
-            <Border BorderBrush="#89a" BorderThickness="1" Width="51" Height="51"
-                    Background="{StaticResource RevampBackgroundGradientBrush}" RenderTransformOrigin=".5 .5" Effect="{StaticResource DropShadow}"
-                    Opacity=".7" Grid.Row="1">
-                <Border.RenderTransform>
-                    <TransformGroup>
-                        <RotateTransform Angle="45" />
-                        <TranslateTransform X="-42" />
-                    </TransformGroup>
-                </Border.RenderTransform>
-            </Border>
-            <skills:RhombSkillEffectControl DataContext="{Binding ManaBoost}" Margin="-20" Padding="20" Grid.Row="1">
-                <FrameworkElement.RenderTransform>
-                    <TranslateTransform X="-42" />
-                </FrameworkElement.RenderTransform>
-            </skills:RhombSkillEffectControl>
-            <Border BorderBrush="#89a" BorderThickness="1" Width="51" Height="51"
-                    Background="{StaticResource RevampBackgroundGradientBrush}" RenderTransformOrigin=".5 .5" Effect="{StaticResource DropShadow}"
-                    Opacity=".7" Grid.Row="1">
-                <Border.RenderTransform>
-                    <TransformGroup>
-                        <RotateTransform Angle="45" />
-                        <TranslateTransform X="42" />
-                    </TransformGroup>
-                </Border.RenderTransform>
-            </Border>
-            <skills:RhombSkillEffectControl DataContext="{Binding BurstOfCelerity}" Margin="-20" Padding="20" Grid.Row="1">
-                <FrameworkElement.RenderTransform>
-                    <TranslateTransform X="42" />
-                </FrameworkElement.RenderTransform>
-            </skills:RhombSkillEffectControl>
+            <ItemsControl Grid.Row="1"
+                          ItemsSource="{Binding ExtraSkills}"
+                          AlternationCount="2"
+                          HorizontalAlignment="Center"
+                          VerticalAlignment="Center">
+                <ItemsControl.ItemsPanel>
+                    <ItemsPanelTemplate>
+                        <Grid />
+                    </ItemsPanelTemplate>
+                </ItemsControl.ItemsPanel>
+                <ItemsControl.ItemContainerStyle>
+                    <Style TargetType="ContentPresenter">
+                        <Setter Property="HorizontalAlignment" Value="Center" />
+                        <Setter Property="VerticalAlignment" Value="Center" />
+                        <Setter Property="RenderTransform">
+                            <Setter.Value>
+                                <MultiBinding Converter="{StaticResource ClassSkillSlotTransformConverter}"
+                                              ConverterParameter="Sorcerer">
+                                    <Binding Path="ItemsSource.Count"
+                                             RelativeSource="{RelativeSource AncestorType=ItemsControl}" />
+                                    <Binding Path="(ItemsControl.AlternationIndex)"
+                                             RelativeSource="{RelativeSource Self}" />
+                                </MultiBinding>
+                            </Setter.Value>
+                        </Setter>
+                    </Style>
+                </ItemsControl.ItemContainerStyle>
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate>
+                        <Grid Width="51" Height="51">
+                            <Border BorderBrush="#89a"
+                                    BorderThickness="1"
+                                    Width="51"
+                                    Height="51"
+                                    Background="{StaticResource RevampBackgroundGradientBrush}"
+                                    RenderTransformOrigin=".5 .5"
+                                    Effect="{StaticResource DropShadow}"
+                                    Opacity=".7">
+                                <FrameworkElement.RenderTransform>
+                                    <RotateTransform Angle="45" />
+                                </FrameworkElement.RenderTransform>
+                            </Border>
+                            <skills:RhombFixedSkillControl x:Name="FixedSkillControl" />
+                            <skills:RhombSkillEffectControl x:Name="ManaBoostSkillControl"
+                                                            DataContext="{Binding ManaBoost, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                                            Visibility="Collapsed" />
+                            <skills:RhombSkillEffectControl x:Name="BurstOfCeleritySkillControl"
+                                                            DataContext="{Binding BurstOfCelerity, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                                            Visibility="Collapsed" />
+                        </Grid>
+                        <DataTemplate.Triggers>
+                            <DataTrigger Binding="{Binding Skill.Id}" Value="340200">
+                                <Setter TargetName="FixedSkillControl" Property="Visibility" Value="Collapsed" />
+                                <Setter TargetName="ManaBoostSkillControl" Property="Visibility" Value="Visible" />
+                            </DataTrigger>
+                            <DataTrigger Binding="{Binding Skill.Id}" Value="240100">
+                                <Setter TargetName="FixedSkillControl" Property="Visibility" Value="Collapsed" />
+                                <Setter TargetName="BurstOfCeleritySkillControl" Property="Visibility" Value="Visible" />
+                            </DataTrigger>
+                        </DataTemplate.Triggers>
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
 
             <!--HP/MP-->
             <!--<UniformGrid Columns="2" 

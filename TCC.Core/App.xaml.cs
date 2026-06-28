@@ -187,11 +187,11 @@ public partial class App
             ? "EU-EN"
             : Settings.LastLanguage);
         await PacketAnalyzer.InitAsync(Settings.CaptureMode, ToolboxMode);
-        _ = StubInterface.Instance.InitAsync(Settings.LfgWindowSettings.Enabled,
+        _ = StubInterface.Instance.InitAsync(false,
             Settings.EnablePlayerMenu,
             Settings.EnableProxy,
-            Settings.ShowIngameChat,
-            Settings.ChatEnabled);
+            false,
+            false);
 
         // ----------------------------
         SplashScreen.VM.Progress = 90;

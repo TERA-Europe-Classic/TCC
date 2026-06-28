@@ -167,35 +167,12 @@ public static class Game
         KeyboardHook.Instance.RegisterCallback(App.Settings.ReturnToLobbyHotkey, OnReturnToLobbyHotkeyPressed);
 
         StubMessageParser.SetUiModeEvent += OnSetUiMode;
-        StubMessageParser.SetChatModeEvent += OnSetChatMode;
-        StubMessageParser.HandleChatMessageEvent += OnStubChatMessage;
-        StubMessageParser.HandleTranslatedMessageEvent += OnStubTranslatedMessage;
         StubMessageParser.HandleRawPacketEvent += OnRawPacket;
     }
 
     private static void OnRawPacket(Message msg)
     {
         PacketAnalyzer.EnqueuePacket(msg);
-    }
-
-    private static void OnStubChatMessage(string author, uint channel, string message)
-    {
-        if (!ChatManager.Instance.PrivateChannels.Any(x => x.Id == channel && x.Joined))
-            ChatManager.Instance.CachePrivateMessage(channel, author, message);
-        else
-            ChatManager.Instance.AddChatMessage(
-                ChatManager.Instance.Factory.CreateMessage((ChatChannel)ChatManager.Instance.PrivateChannels.FirstOrDefault(x =>
-                    x.Id == channel && x.Joined).Index + 11, author, message));
-    }
-
-    private static void OnStubTranslatedMessage(string author, uint channel, string message, bool gm)
-    {
-        ChatManager.Instance.HandleTranslation(author, channel, message, gm);
-    }
-
-    private static void OnSetChatMode(bool b)
-    {
-        InGameChatOpen = b;
     }
 
     private static void OnSetUiMode(bool b)
@@ -319,9 +296,6 @@ public static class Game
         PacketAnalyzer.Processor.Hook<S_START_COOLTIME_SKILL>(OnStartCooltimeSkill);
         PacketAnalyzer.Processor.Hook<S_FRIEND_LIST>(OnFriendList);
         PacketAnalyzer.Processor.Hook<S_USER_BLOCK_LIST>(OnUserBlockList);
-        PacketAnalyzer.Processor.Hook<S_CHAT>(OnChat);
-        PacketAnalyzer.Processor.Hook<S_PRIVATE_CHAT>(OnPrivateChat);
-        PacketAnalyzer.Processor.Hook<S_WHISPER>(OnWhisper);
         PacketAnalyzer.Processor.Hook<S_BOSS_GAGE_INFO>(OnBossGageInfo);
         PacketAnalyzer.Processor.Hook<S_CREATURE_CHANGE_HP>(OnCreatureChangeHp);
 
@@ -437,7 +411,6 @@ public static class Game
           || Combat
           || !StubInterface.Instance.IsStubAvailable) return;
 
-        WindowManager.ViewModels.LfgVM.ForceStopPublicize();
         StubInterface.Instance.StubClient.ReturnToLobby();
     }
 
@@ -472,38 +445,6 @@ public static class Game
             Class.Valkyrie => new ValkyrieAbnormalityTracker(),
             _ => new AbnormalityTracker()
         };
-    }
-
-    private static void CheckChatMention(ParsedMessage m)
-    {
-        string author = "", txt = "", strCh = "";
-
-        switch (m)
-        {
-            case S_WHISPER w:
-                txt = ChatUtils.GetPlainText(w.Message).UnescapeHtml();
-                if (!TccUtils.CheckMention(txt)) return;
-                author = w.Author;
-                strCh = TccUtils.ChatChannelToName(ChatChannel.ReceivedWhisper);
-                break;
-
-            case S_CHAT c:
-                txt = ChatUtils.GetPlainText(c.Message).UnescapeHtml();
-                if (!TccUtils.CheckMention(txt)) return;
-                author = c.Name;
-                strCh = TccUtils.ChatChannelToName((ChatChannel)c.Channel);
-                break;
-
-            case S_PRIVATE_CHAT p:
-                txt = ChatUtils.GetPlainText(p.Message).UnescapeHtml();
-                if (!TccUtils.CheckMention(txt)) return;
-                author = p.AuthorName;
-                strCh = TccUtils.ChatChannelToName((ChatChannel)p.Channel);
-                break;
-        }
-
-        TccUtils.CheckWindowNotify(txt, $"{author} - {strCh}");
-        TccUtils.CheckDiscordNotify($"`{strCh}` {txt}", author);
     }
 
     internal static void ShowLootDistributionWindow()
@@ -628,47 +569,6 @@ public static class Game
     private static void OnBossGageInfo(S_BOSS_GAGE_INFO m)
     {
         SetEncounter(m.CurrentHP, m.MaxHP);
-    }
-
-    private static void OnWhisper(S_WHISPER p)
-    {
-        if (p.Recipient != Me.Name) return;
-        CheckChatMention(p);
-    }
-
-    private static void OnChat(S_CHAT m)
-    {
-        #region Greet meme
-
-        if ((ChatChannel)m.Channel == ChatChannel.Greet
-            && m.Name is "Foglio" or "Folyemi")
-            Log.N("owo", SR.GreetMemeContent, NotificationType.Success, 3000);
-
-        #endregion Greet meme
-
-        #region Global trade angery
-
-        if (m.Name == Me.Name)
-        {
-            if ((ChatChannel)m.Channel != ChatChannel.Global) return;
-
-            if (!(m.Message.IndexOf("WTS", StringComparison.InvariantCultureIgnoreCase) >= 0 ||
-                  m.Message.IndexOf("WTB", StringComparison.InvariantCultureIgnoreCase) >= 0 ||
-                  m.Message.IndexOf("WTT", StringComparison.InvariantCultureIgnoreCase) >= 0)) return;
-            Log.N("REEEEEEEEEEEEEEEEEEEEEE", SR.GlobalSellAngery, NotificationType.Error);
-        }
-
-        #endregion Global trade angery
-
-        if (BlockList.Contains(m.Name)) return;
-
-        CheckChatMention(m);
-    }
-
-    private static void OnPrivateChat(S_PRIVATE_CHAT m)
-    {
-        if (BlockList.Contains(m.AuthorName)) return;
-        CheckChatMention(m);
     }
 
     private static void OnSpawnNpc(S_SPAWN_NPC p)
@@ -850,11 +750,11 @@ public static class Game
         if (!StubInterface.Instance.IsConnected)
         {
             StubInterface.Instance.Disconnect();
-            _ = StubInterface.Instance.InitAsync(App.Settings.LfgWindowSettings.Enabled,
+            _ = StubInterface.Instance.InitAsync(false,
                                  App.Settings.EnablePlayerMenu,
                                  App.Settings.EnableProxy,
-                                 App.Settings.ShowIngameChat,
-                                 App.Settings.ChatEnabled);
+                                 false,
+                                 false);
         }
 
         Logged = false;

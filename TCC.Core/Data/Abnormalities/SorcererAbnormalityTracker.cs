@@ -10,6 +10,7 @@ namespace TCC.Data.Abnormalities;
 public class SorcererAbnormalityTracker : AbnormalityTracker
 {
     private static readonly List<uint> ManaBoostIds = [500150, 501602, 503061];
+    private const uint BurstOfCelerityId = 501200;
     private const int FlameFusionIncreaseId = 502070;   // Equipoise-Flame
     private const int FrostFusionIncreaseId = 502071;   // Equipoise-Frost
     private const int ArcaneFusionIncreaseId = 502072;  // Equipoise-Arcane
@@ -36,6 +37,7 @@ public class SorcererAbnormalityTracker : AbnormalityTracker
 
         CheckFusionsBegin(p);
         CheckManaBoostBegin(p);
+        CheckBurstOfCelerityBegin(p);
         CheckFusionBoostBegin(p);
     }
 
@@ -44,6 +46,7 @@ public class SorcererAbnormalityTracker : AbnormalityTracker
         if (!Game.IsMe(p.TargetId)) return;
 
         CheckManaBoostRefresh(p);
+        CheckBurstOfCelerityRefresh(p);
         CheckFusionBoostRefresh(p);
     }
 
@@ -52,6 +55,7 @@ public class SorcererAbnormalityTracker : AbnormalityTracker
         if (!Game.IsMe(p.TargetId)) return;
 
         CheckManaBoostEnd(p);
+        CheckBurstOfCelerityEnd(p);
         CheckFusionBoostEnd(p);
         CheckFusionsEnd(p);
     }
@@ -78,6 +82,30 @@ public class SorcererAbnormalityTracker : AbnormalityTracker
         if (!TryGetClassViewModel<SorcererLayoutViewModel>(out var vm)) return;
 
         vm.ManaBoost.StopEffect();
+    }
+
+    private static void CheckBurstOfCelerityBegin(S_ABNORMALITY_BEGIN p)
+    {
+        if (p.AbnormalityId != BurstOfCelerityId) return;
+        if (!TryGetClassViewModel<SorcererLayoutViewModel>(out var vm)) return;
+
+        vm.BurstOfCelerity.StartEffect(p.Duration);
+    }
+
+    private static void CheckBurstOfCelerityRefresh(S_ABNORMALITY_REFRESH p)
+    {
+        if (p.AbnormalityId != BurstOfCelerityId) return;
+        if (!TryGetClassViewModel<SorcererLayoutViewModel>(out var vm)) return;
+
+        vm.BurstOfCelerity.RefreshEffect(p.Duration);
+    }
+
+    private static void CheckBurstOfCelerityEnd(S_ABNORMALITY_END p)
+    {
+        if (p.AbnormalityId != BurstOfCelerityId) return;
+        if (!TryGetClassViewModel<SorcererLayoutViewModel>(out var vm)) return;
+
+        vm.BurstOfCelerity.StopEffect();
     }
 
     private static void CheckFusionBoostBegin(S_ABNORMALITY_BEGIN p)

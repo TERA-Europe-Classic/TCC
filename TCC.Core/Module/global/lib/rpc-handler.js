@@ -63,25 +63,6 @@ class RpcHandler {
         }
         Globals.debug("Sent C_REQUEST_PARTY_INFO");
     }
-    applyToGroup(params) {
-        if (this.currNetworkMod.majorPatchVersion >= 108) {
-
-            this.currNetworkMod.send("C_APPLY_PARTY", 2, {
-                playerId: params.playerId,
-                serverId: params.serverId,
-            });
-        }
-        else {
-            this.currNetworkMod.send("C_APPLY_PARTY", 1, {
-                playerId: params.playerId
-            });
-
-        }
-
-
-        Globals.debug(`Sent C_APPLY_PARTY { playerId : ${params.listingId}}`);
-        return true;
-    }
     friendUser(params) {
         this.currNetworkMod.send("C_ADD_FRIEND", 1, {
             name: params.userName,
@@ -193,52 +174,6 @@ class RpcHandler {
         });
         Globals.debug(`Sent C_TRADE_BROKER_REJECT_SUGGEST`);
     }
-    declineUserGroupApply(params) {
-        this.currNetworkMod.send("C_PARTY_APPLICATION_DENIED", 2, {
-            playerId: params.playerId,
-            serverId: params.serverId
-
-        });
-        Globals.debug(`Sent C_PARTY_APPLICATION_DENIED`);
-    }
-    publicizeListing(params) {
-        this.currNetworkMod.send("C_REQUEST_PARTY_MATCH_LINK", 1, {});
-        Globals.debug(`Sent C_REQUEST_PARTY_MATCH_LINK`);
-    }
-    removeListing(params) {
-        this.currNetworkMod.send("C_UNREGISTER_PARTY_INFO", 1, {
-            unk1: 20,
-            minLevel: 1,
-            maxLevel: 65,
-            unk3: 3
-        });
-        Globals.debug(`Sent C_UNREGISTER_PARTY_INFO`);
-    }
-    requestListings(params) {
-        this.currNetworkMod.send("C_PARTY_MATCH_WINDOW_CLOSED", 1, {});
-        Globals.debug(`Sent C_PARTY_MATCH_WINDOW_CLOSED`);
-
-        let min = params.minLevel;
-        let max = params.maxLevel;
-        if (min > max)
-            min = max;
-        if (min < 1)
-            min = 1;
-        this.currNetworkMod.send("C_REQUEST_PARTY_MATCH_INFO", 1, {
-            minlvl: min,
-            maxlvl: max,
-            unk2: 3
-        });
-        Globals.debug(`Sent C_REQUEST_PARTY_MATCH_INFO`);
-
-    }
-    requestListingsPage(params) {
-        this.currNetworkMod.send("C_REQUEST_PARTY_MATCH_INFO_PAGE", 1, {
-            page: params.page,
-            unk1: 3
-        });
-        Globals.debug(`Sent C_REQUEST_PARTY_MATCH_INFO_PAGE`);
-    }
     askInteractive(params) {
         this.currNetworkMod.send("C_ASK_INTERACTIVE", 2, {
             unk: 1,
@@ -263,13 +198,6 @@ class RpcHandler {
         });
         Globals.debug(`Sent C_REQUEST_NONDB_ITEM_INFO`);
     }
-    registerListing(params) {
-        this.currNetworkMod.send("C_REGISTER_PARTY_INFO", 1, {
-            isRaid: params.isRaid,
-            message: params.message
-        });
-        Globals.debug(`Sent C_REGISTER_PARTY_INFO`);
-    }
     disbandGroup(params) {
         this.currNetworkMod.send("C_DISMISS_PARTY", 1, {});
         Globals.debug(`Sent C_DISMISS_PARTY`);
@@ -277,10 +205,6 @@ class RpcHandler {
     leaveGroup(params) {
         this.currNetworkMod.send("C_LEAVE_PARTY", 1, {});
         Globals.debug(`Sent C_LEAVE_PARTY`);
-    }
-    requestListingCandidates(params) {
-        this.currNetworkMod.send("C_REQUEST_CANDIDATE_LIST", 1, {});
-        Globals.debug(`Sent C_REQUEST_CANDIDATE_LIST`);
     }
     forceSystemMessage(params) {
         this.currNetworkMod.send("S_SYSTEM_MESSAGE", 1, {
@@ -296,32 +220,14 @@ class RpcHandler {
         this.currNetworkMod.send("C_RETURN_TO_LOBBY", 1, {});
         Globals.debug(`Sent C_RETURN_TO_LOBBY`);
     }
-    chatLinkAction(params) {
-
-        this.currNetworkMod.send("S_CHAT", this.currNetworkMod.majorPatchVersion >= 108 ? 4 : 3, {
-            channel: 18,
-            name: "tccChatLink",
-            message: params.linkData
-        });
-        Globals.debug(`Calling chatLinkAction: ${params.linkData}`);
-    }
     updateSetting(params) // bool only, send type if needed for other setting
     {
         let value = params.value == "True"; // JS PLS
         let name = params.name;
         Globals[name] = value;
         let msg = `${name} set to ${value}`;
-        if (name == "useLfg") {
-            msg = `TCC LFG window ${(value ? "enabled" : "disabled")}. Ingame LFG ${(value ? "will" : "won't")} be blocked.`;
-        }
-        else if (name == "EnablePlayerMenu") {
+        if (name == "EnablePlayerMenu") {
             msg = `TCC player menu ${(value ? "enabled" : "disabled")}. Ingame player menu ${(value ? "will" : "won't")} be blocked.`;
-        }
-        else if (name == "ShowIngameChat") {
-            this.currNetworkMod.notifyShowIngameChatChanged();
-        }
-        else if (name == "TccChatEnabled") {
-            // do nothing
         }
         this.mod.log(msg);
     }
@@ -525,14 +431,9 @@ class RpcHandler {
     //----------------------------------------
 
     initialize(params) {
-        Globals.useLfg = params.useLfg;
         Globals.EnablePlayerMenu = params.EnablePlayerMenu;
         Globals.EnableProxy = params.EnableProxy;
-        Globals.ShowIngameChat = params.ShowIngameChat;
-        Globals.TccChatEnabled = params.TccChatEnabled;
-        if (Globals.useLfg) this.mod.log("TCC LFG window enabled. Ingame LFG listings will be blocked.");
         if (Globals.EnablePlayerMenu) this.mod.log("TCC player menu enabled. Ingame player menu will be blocked.");
-        if (!Globals.TccChatEnabled) this.mod.log("TCC chat disabled. Advanced Chat2.gpk functionalities won't be available.");
         return true;
     }
 }

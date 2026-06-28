@@ -31,7 +31,6 @@ public class FloatingButtonViewModel : TccWindowViewModel
         set => RaiseAndSetIfChanged(value, ref _pendingNotificationsAmount);
     }
     public ICommand OpenSettingsCommand { get; }
-    public ICommand OpenLfgCommand { get; }
     public ICommand OpenDashboardCommand { get; }
 
     public int CurrPP
@@ -54,7 +53,6 @@ public class FloatingButtonViewModel : TccWindowViewModel
     public FloatingButtonViewModel(FloatingButtonWindowSettings settings) : base(settings)
     {
         OpenSettingsCommand = new RelayCommand(_ => WindowManager.SettingsWindow.ShowWindow());
-        OpenLfgCommand = new RelayCommand(_ => WindowManager.LfgListWindow.ShowWindow());
         OpenDashboardCommand = new RelayCommand(_ =>
         {
             WindowManager.DashboardWindow.ShowWindow();

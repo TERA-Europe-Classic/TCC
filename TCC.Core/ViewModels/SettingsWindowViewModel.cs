@@ -62,7 +62,6 @@ public class SettingsWindowViewModel : ThreadSafeObservableObject
     public ICommand ResetWindowPositionsCommand { get; }
     public ICommand OpenResourcesFolderCommand { get; }
     public ICommand OpenWelcomeWindowCommand { get; }
-    public ICommand OpenConfigureLfgWindowCommand { get; }
     public ICommand ClearChatCommand { get; }
 
     public bool EthicalMode
@@ -423,7 +422,7 @@ public class SettingsWindowViewModel : ThreadSafeObservableObject
             App.Settings.EnableProxy = value;
             InvokePropertyChanged();
             InvokePropertyChanged(nameof(ClickThruModes));
-            StubInterface.Instance.StubClient.UpdateSetting("EnableProxy", App.Settings.ChatEnabled);
+            StubInterface.Instance.StubClient.UpdateSetting("EnableProxy", App.Settings.EnableProxy);
 
         }
     }
@@ -629,13 +628,11 @@ public class SettingsWindowViewModel : ThreadSafeObservableObject
 
     public bool ChatWindowEnabled
     {
-        get => App.Settings.ChatEnabled;
+        get => false;
         set
         {
-            if (App.Settings.ChatEnabled == value) return;
-            App.Settings.ChatEnabled = value;
-            ChatManager.Instance.NotifyEnabledChanged(value);
-            StubInterface.Instance.StubClient.UpdateSetting("TccChatEnabled", value);
+            if (!App.Settings.ChatEnabled) return;
+            App.Settings.ChatEnabled = false;
             InvokePropertyChanged();
         }
     }
@@ -820,14 +817,6 @@ public class SettingsWindowViewModel : ThreadSafeObservableObject
         ResetWindowPositionsCommand = new RelayCommand(_ => WindowManager.ResetToCenter());
         OpenResourcesFolderCommand = new RelayCommand(_ => Process.Start(new ProcessStartInfo(Path.Combine(App.ResourcesPath, "config")) { UseShellExecute = true }));
         ClearChatCommand = new RelayCommand(_ => ChatManager.Instance.ClearMessages());
-        OpenConfigureLfgWindowCommand = new RelayCommand(_ =>
-        {
-            new LfgFilterConfigWindow(WindowManager.ViewModels.LfgVM)
-            {
-                Owner = WindowManager.SettingsWindow,
-                WindowStartupLocation = WindowStartupLocation.CenterOwner
-            }.ShowDialog();
-        });
         MonsterDatabase.BlacklistChangedEvent += MonsterDatabase_BlacklistChangedEvent;
         MessageFactory.ReleaseVersionChanged += OnReleaseVersionChanged;
     }
