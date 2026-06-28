@@ -98,6 +98,10 @@ def normalize_bool(value: str | None) -> str:
     return "True" if str(value).lower() == "true" else "False"
 
 
+def normalize_abnormality_visibility(value: str | None) -> str:
+    return "True" if str(value).lower() in {"true", "onlyicon"} else "False"
+
+
 def format_number(value: str | None) -> str:
     if value is None or value == "":
         return "0"
@@ -453,7 +457,7 @@ def build_hotdot(dc_dir: Path, out_dir: Path, lang: str) -> None:
                     resolved_tooltip,
                     icon_name,
                     icon_name,
-                    normalize_bool(abnormal.get("isShow")),
+                    normalize_abnormality_visibility(abnormal.get("isShow")),
                 ]
             )
     rows.sort(key=lambda row: int(row[0]))

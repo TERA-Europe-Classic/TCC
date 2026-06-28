@@ -227,6 +227,52 @@ class ClassicPlusGeneratorTests(unittest.TestCase):
             self.assertNotIn("$tickInterval", generated)
             self.assertNotIn("$time", generated)
 
+    def test_build_hotdot_treats_only_icon_abnormalities_as_visible(self):
+        with tempfile.TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            dc_dir = root / "dc"
+            out_dir = root / "out"
+            (dc_dir / "StrSheet_Abnormality").mkdir(parents=True)
+            (dc_dir / "AbnormalityIconData").mkdir(parents=True)
+            (dc_dir / "Abnormality").mkdir(parents=True)
+
+            (dc_dir / "StrSheet_Abnormality" / "StrSheet_Abnormality-00000.xml").write_text(
+                """<?xml version="1.0" encoding="utf-8"?>
+<StrSheet_Abnormality>
+  <String id="32058" name="Glyph of Blaze" tooltip="Speeds casting of Burning Heart and Fire Avalanche by $H_W_GOOD$value$COLOR_END." />
+</StrSheet_Abnormality>
+""",
+                encoding="utf-8",
+            )
+            (dc_dir / "AbnormalityIconData" / "AbnormalityIconData-00000.xml").write_text(
+                """<?xml version="1.0" encoding="utf-8"?>
+<AbnormalityIconData>
+  <Icon abnormalityId="32058" iconName="Icon_Crest.crestnextskillattackspeedup_Tex" />
+</AbnormalityIconData>
+""",
+                encoding="utf-8",
+            )
+            (dc_dir / "Abnormality" / "Abnormality-00000.xml").write_text(
+                """<?xml version="1.0" encoding="utf-8"?>
+<Abnormality>
+  <Abnormal id="32058" property="4" isBuff="true" infinity="false" time="10000" kind="19212" isShow="onlyIcon">
+    <AbnormalityEffect type="235" value="1.3" tickInterval="0" />
+  </Abnormal>
+</Abnormality>
+""",
+                encoding="utf-8",
+            )
+
+            generator.build_hotdot(dc_dir, out_dir, "EU-EN")
+
+            generated = (out_dir / "hotdot" / "hotdot-EU-EN.tsv").read_text(encoding="utf-8")
+            self.assertIn(
+                "32058\t235\tBuff\tFalse\tseta\t10000\t0\t1.3\tGlyph of Blaze\t19212\tGlyph of Blaze\t"
+                "Speeds casting of Burning Heart and Fire Avalanche by $H_W_GOOD30%$COLOR_END.\t"
+                "icon_crest.crestnextskillattackspeedup_tex\ticon_crest.crestnextskillattackspeedup_tex\tTrue\n",
+                generated,
+            )
+
     def test_build_hotdot_uses_last_effect_for_out_of_range_tooltip_placeholders(self):
         with tempfile.TemporaryDirectory() as temp_dir:
             root = Path(temp_dir)
