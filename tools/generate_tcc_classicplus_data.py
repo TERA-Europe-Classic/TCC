@@ -52,6 +52,8 @@ EFFECT_TYPE_NAMES = {
     "13": "DamageAbsorb",
 }
 
+PLACEHOLDER_RE = re.compile(r"\$(value|tickInterval|time)(\d*)")
+
 
 def local_name(tag: str) -> str:
     return tag.rsplit("}", 1)[-1]
@@ -94,6 +96,78 @@ def to_rounded_int(value: str | None, default: int = 0) -> int:
 
 def normalize_bool(value: str | None) -> str:
     return "True" if str(value).lower() == "true" else "False"
+
+
+def format_number(value: str | None) -> str:
+    if value is None or value == "":
+        return "0"
+    try:
+        parsed = float(value)
+    except ValueError:
+        return value
+
+    if parsed.is_integer():
+        return str(int(parsed))
+    return f"{parsed:.6f}".rstrip("0").rstrip(".")
+
+
+def format_effect_value(value: str | None) -> str:
+    if value is None or value == "":
+        return "0"
+    try:
+        parsed = float(value)
+    except ValueError:
+        return value
+
+    if -3 < parsed < 0:
+        return f"{format_number(str(abs(parsed) * 100))}%"
+    if 0 < parsed < 0.5:
+        return f"{format_number(str(parsed * 100))}%"
+    if 0.5 <= parsed < 1:
+        return f"{format_number(str((1 - parsed) * 100))}%"
+    if 1 < parsed < 3:
+        return f"{format_number(str((parsed - 1) * 100))}%"
+    return format_number(value)
+
+
+def format_time_ms(value: str | None) -> str:
+    milliseconds = to_int(value)
+    if milliseconds <= 0:
+        return "0"
+    seconds = milliseconds // 1000
+    if seconds and milliseconds % 1000 == 0:
+        if seconds % 3600 == 0:
+            return f"{seconds // 3600}h"
+        if seconds % 60 == 0:
+            return f"{seconds // 60}min"
+        return f"{seconds}s"
+    return format_number(value)
+
+
+def replace_tooltip_placeholders(tooltip: str, abnormal_time: str | None, effects: list[ET.Element]) -> str:
+    if "$" not in tooltip:
+        return tooltip
+
+    def replacement(match: re.Match[str]) -> str:
+        token = match.group(1)
+        index = to_int(match.group(2), 1) - 1
+
+        if token == "time":
+            return format_time_ms(abnormal_time)
+
+        if index < 0:
+            index = 0
+        if not effects:
+            return "0"
+        if index >= len(effects):
+            index = len(effects) - 1
+
+        effect = effects[index]
+        if token == "tickInterval":
+            return format_number(effect.get("tickInterval"))
+        return format_effect_value(effect.get("value"))
+
+    return PLACEHOLDER_RE.sub(replacement, tooltip)
 
 
 def normalize_class(value: str | None) -> str:
@@ -357,7 +431,9 @@ def build_hotdot(dc_dir: Path, out_dir: Path, lang: str) -> None:
             continue
         name, tooltip = strings.get(abnormality_id, ("", ""))
         icon_name = icons.get(abnormality_id, "")
-        for effect in [x for x in abnormal if local_name(x.tag) == "AbnormalityEffect"] or [None]:
+        effects = [x for x in abnormal if local_name(x.tag) == "AbnormalityEffect"]
+        resolved_tooltip = replace_tooltip_placeholders(tooltip, abnormal.get("time"), effects)
+        for effect in effects or [None]:
             effect_type_id = effect.get("type") if effect is not None else "0"
             effect_type = EFFECT_TYPE_NAMES.get(effect_type_id or "0", effect_type_id or "Unknown")
             value = effect.get("value") if effect is not None else "0"
@@ -374,7 +450,7 @@ def build_hotdot(dc_dir: Path, out_dir: Path, lang: str) -> None:
                     name,
                     abnormal.get("kind") or "",
                     name,
-                    tooltip,
+                    resolved_tooltip,
                     icon_name,
                     icon_name,
                     normalize_bool(abnormal.get("isShow")),

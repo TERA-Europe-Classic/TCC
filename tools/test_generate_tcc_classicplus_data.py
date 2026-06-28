@@ -135,6 +135,144 @@ class ClassicPlusGeneratorTests(unittest.TestCase):
             self.assertIn('hp="302469"', generated)
             self.assertIn('enrageHp="151234"', generated)
 
+    def test_build_hotdot_resolves_datacenter_tooltip_placeholders(self):
+        with tempfile.TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            dc_dir = root / "dc"
+            out_dir = root / "out"
+            (dc_dir / "StrSheet_Abnormality").mkdir(parents=True)
+            (dc_dir / "AbnormalityIconData").mkdir(parents=True)
+            (dc_dir / "Abnormality").mkdir(parents=True)
+
+            (dc_dir / "StrSheet_Abnormality" / "StrSheet_Abnormality-00000.xml").write_text(
+                """<?xml version="1.0" encoding="utf-8"?>
+<StrSheet_Abnormality>
+  <String id="4830" name="Bravery" tooltip="Increases skill damage by $H_W_GOOD$value2$COLOR_END. Additionally increases Attack Speed by $H_W_GOOD$value$COLOR_END." />
+</StrSheet_Abnormality>
+""",
+                encoding="utf-8",
+            )
+            (dc_dir / "AbnormalityIconData" / "AbnormalityIconData-00000.xml").write_text(
+                """<?xml version="1.0" encoding="utf-8"?>
+<AbnormalityIconData>
+  <Icon abnormalityId="4830" iconName="Icon_Items.Potion10_Tex" />
+</AbnormalityIconData>
+""",
+                encoding="utf-8",
+            )
+            (dc_dir / "Abnormality" / "Abnormality-00000.xml").write_text(
+                """<?xml version="1.0" encoding="utf-8"?>
+<Abnormality>
+  <Abnormal id="4830" property="4" isBuff="true" infinity="false" time="1800000" kind="44802" isShow="true">
+    <AbnormalityEffect type="24" value="1.04" tickInterval="0" />
+    <AbnormalityEffect type="162" value="1.1" tickInterval="0" />
+  </Abnormal>
+</Abnormality>
+""",
+                encoding="utf-8",
+            )
+
+            generator.build_hotdot(dc_dir, out_dir, "EU-EN")
+
+            generated = (out_dir / "hotdot" / "hotdot-EU-EN.tsv").read_text(encoding="utf-8")
+            self.assertIn(
+                "Increases skill damage by $H_W_GOOD10%$COLOR_END. Additionally increases Attack Speed by $H_W_GOOD4%$COLOR_END.",
+                generated,
+            )
+            self.assertNotIn("$value", generated)
+
+    def test_build_hotdot_resolves_tick_interval_and_time_placeholders(self):
+        with tempfile.TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            dc_dir = root / "dc"
+            out_dir = root / "out"
+            (dc_dir / "StrSheet_Abnormality").mkdir(parents=True)
+            (dc_dir / "AbnormalityIconData").mkdir(parents=True)
+            (dc_dir / "Abnormality").mkdir(parents=True)
+
+            (dc_dir / "StrSheet_Abnormality" / "StrSheet_Abnormality-00000.xml").write_text(
+                """<?xml version="1.0" encoding="utf-8"?>
+<StrSheet_Abnormality>
+  <String id="905" name="Regeneration" tooltip="Replenishes MP by $H_W_GOOD$value$COLOR_END every $H_W_GOOD$tickInterval$COLOR_END for $time." />
+</StrSheet_Abnormality>
+""",
+                encoding="utf-8",
+            )
+            (dc_dir / "AbnormalityIconData" / "AbnormalityIconData-00000.xml").write_text(
+                """<?xml version="1.0" encoding="utf-8"?>
+<AbnormalityIconData>
+  <Icon abnormalityId="905" iconName="Icon_Status.PlusMp_Tex" />
+</AbnormalityIconData>
+""",
+                encoding="utf-8",
+            )
+            (dc_dir / "Abnormality" / "Abnormality-00000.xml").write_text(
+                """<?xml version="1.0" encoding="utf-8"?>
+<Abnormality>
+  <Abnormal id="905" property="4" isBuff="true" infinity="false" time="10000" kind="48005" isShow="true">
+    <AbnormalityEffect type="52" value="100" tickInterval="2" />
+  </Abnormal>
+</Abnormality>
+""",
+                encoding="utf-8",
+            )
+
+            generator.build_hotdot(dc_dir, out_dir, "EU-EN")
+
+            generated = (out_dir / "hotdot" / "hotdot-EU-EN.tsv").read_text(encoding="utf-8")
+            self.assertIn(
+                "Replenishes MP by $H_W_GOOD100$COLOR_END every $H_W_GOOD2$COLOR_END for 10s.",
+                generated,
+            )
+            self.assertNotIn("$tickInterval", generated)
+            self.assertNotIn("$time", generated)
+
+    def test_build_hotdot_uses_last_effect_for_out_of_range_tooltip_placeholders(self):
+        with tempfile.TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            dc_dir = root / "dc"
+            out_dir = root / "out"
+            (dc_dir / "StrSheet_Abnormality").mkdir(parents=True)
+            (dc_dir / "AbnormalityIconData").mkdir(parents=True)
+            (dc_dir / "Abnormality").mkdir(parents=True)
+
+            (dc_dir / "StrSheet_Abnormality" / "StrSheet_Abnormality-00000.xml").write_text(
+                """<?xml version="1.0" encoding="utf-8"?>
+<StrSheet_Abnormality>
+  <String id="43100007" name="Bleeding" tooltip="Reduces HP every $H_W_BAD$tickInterval2$COLOR_END and then $H_W_BAD$value2$COLOR_END." />
+</StrSheet_Abnormality>
+""",
+                encoding="utf-8",
+            )
+            (dc_dir / "AbnormalityIconData" / "AbnormalityIconData-00000.xml").write_text(
+                """<?xml version="1.0" encoding="utf-8"?>
+<AbnormalityIconData>
+  <Icon abnormalityId="43100007" iconName="Icon_Status.Bleed_Tex" />
+</AbnormalityIconData>
+""",
+                encoding="utf-8",
+            )
+            (dc_dir / "Abnormality" / "Abnormality-00000.xml").write_text(
+                """<?xml version="1.0" encoding="utf-8"?>
+<Abnormality>
+  <Abnormal id="43100007" property="2" isBuff="false" infinity="false" time="15000" kind="25608" isShow="true">
+    <AbnormalityEffect type="51" value="-0.05" tickInterval="3" />
+  </Abnormal>
+</Abnormality>
+""",
+                encoding="utf-8",
+            )
+
+            generator.build_hotdot(dc_dir, out_dir, "EU-EN")
+
+            generated = (out_dir / "hotdot" / "hotdot-EU-EN.tsv").read_text(encoding="utf-8")
+            self.assertIn(
+                "Reduces HP every $H_W_BAD3$COLOR_END and then $H_W_BAD5%$COLOR_END.",
+                generated,
+            )
+            self.assertNotIn("$tickInterval", generated)
+            self.assertNotIn("$value", generated)
+
     def test_scrub_generated_output_removes_apex_awaken_terms_from_tsv_and_xml(self):
         with tempfile.TemporaryDirectory() as temp_dir:
             out_dir = Path(temp_dir)
