@@ -714,7 +714,8 @@ public class SettingsWindowViewModel : ThreadSafeObservableObject
     public IEnumerable<GroupHpLabelMode> GroupHpLabelModes => EnumUtils.ListFromEnum<GroupHpLabelMode>();
     public IEnumerable<CaptureMode> CaptureModes => EnumUtils.ListFromEnum<CaptureMode>();
     public IEnumerable<MentionMode> MentionModes => EnumUtils.ListFromEnum<MentionMode>();
-    public IEnumerable<LanguageOverride> LanguageOverrides => EnumUtils.ListFromEnum<LanguageOverride>();
+    public IEnumerable<LanguageOverride> LanguageOverrides => EnumUtils.ListFromEnum<LanguageOverride>()
+        .Where(language => language.IsClassicPlusSupported());
     public IEnumerable<CooldownDecimalMode> CooldownDecimalModes => EnumUtils.ListFromEnum<CooldownDecimalMode>();
     public IEnumerable<TranslationMode> TranslationModes => EnumUtils.ListFromEnum<TranslationMode>();
 

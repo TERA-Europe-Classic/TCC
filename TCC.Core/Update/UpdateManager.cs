@@ -22,9 +22,12 @@ namespace TCC.Update;
 
 public static class UpdateManager
 {
-    private const string AppVersionUrl = "https://raw.githubusercontent.com/Foglio1024/Tera-custom-cooldowns/master/version";
-    private const string AppVersionBetaUrl = "https://raw.githubusercontent.com/Foglio1024/Tera-custom-cooldowns/beta/version";
-    private static readonly string DatabaseHashFileUrl = $"https://raw.githubusercontent.com/Foglio1024/Tera-custom-cooldowns/{(App.Beta ? "beta" : "master")}/database-hashes.json";
+    private const string AppVersionUrl = "https://raw.githubusercontent.com/TERA-Europe-Classic/TCC/main/version";
+    private const string AppVersionBetaUrl = "https://raw.githubusercontent.com/TERA-Europe-Classic/TCC/main/version";
+    private const string ClassicPlusDataBaseUrl = "https://raw.githubusercontent.com/TERA-Europe-Classic/TCC-ClassicPlus-Data/main/";
+    private const string DatabaseHashFileName = "database-hashes.json";
+    private static string DatabaseHashFileUrl => $"{ClassicPlusDataBaseUrl}{DatabaseHashFileName}";
+    private static string LocalDatabaseHashFilePath => Path.Combine(App.BasePath, DatabaseHashFileName);
 
     private static readonly Timer _checkTimer = new((App.ToolboxMode ? 2 : 10) * 60 * 1000);
     private static bool _waitingDownload = true;
@@ -80,7 +83,7 @@ public static class UpdateManager
             var st = req.Result;
             var newVersionInfo = new StreamReader(st).ReadLine();
             if (newVersionInfo == null) return false;
-            if (Version.Parse(newVersionInfo) > Assembly.GetExecutingAssembly().GetName().Version) return true;
+            if (ParseAppVersionNumber(newVersionInfo) > Assembly.GetExecutingAssembly().GetName().Version) return true;
         }
         catch (Exception e)
         {
@@ -90,10 +93,9 @@ public static class UpdateManager
     }
     public static void UpdateDatabase(string relativePath)
     {
-        // example https://raw.githubusercontent.com/neowutran/TeraDpsMeterData/master/acc_benefits/acc_benefits-EU-EN.tsv
         try
         {
-            var url = $"https://raw.githubusercontent.com/neowutran/TeraDpsMeterData/menma/{relativePath.Replace("\\", "/")}";
+            var url = GetDatabaseUpdateUrl(relativePath);
             var destPath = Path.Combine(App.DataPath, relativePath);
             var destDir = Path.GetDirectoryName(destPath);
             if (!Directory.Exists(destDir) && destDir != null) Directory.CreateDirectory(destDir);
@@ -201,8 +203,7 @@ public static class UpdateManager
         using var c = MiscUtils.GetDefaultHttpClient();
         try
         {
-            c.DownloadFileAsync("https://raw.githubusercontent.com/neowutran/TeraDpsMeterData/master/servers.txt",
-                Path.Combine(App.DataPath, "servers.txt")).Wait();
+            c.DownloadFileAsync(GetDatabaseUpdateUrl("servers.txt"), Path.Combine(App.DataPath, "servers.txt")).Wait();
         }
         catch
         {
@@ -239,10 +240,21 @@ public static class UpdateManager
     private static async Task DownloadDatabaseHashes()
     {
         DatabaseHashes.Clear();
-        using var c = MiscUtils.GetDefaultHttpClient();
-        var f = await c.GetStreamAsync(DatabaseHashFileUrl);
-        using var sr = new StreamReader(f);
-        var sHashes = await sr.ReadToEndAsync();
+        string sHashes;
+
+        try
+        {
+            using var c = MiscUtils.GetDefaultHttpClient();
+            var f = await c.GetStreamAsync(DatabaseHashFileUrl);
+            using var sr = new StreamReader(f);
+            sHashes = await sr.ReadToEndAsync();
+        }
+        catch (Exception ex) when (File.Exists(LocalDatabaseHashFilePath))
+        {
+            Log.F($"Failed to download Classic+ database hashes; using packaged hashes. \nException: {ex.Message}");
+            sHashes = await File.ReadAllTextAsync(LocalDatabaseHashFilePath);
+        }
+
         var jHashes = JObject.Parse(sHashes);
         foreach (var jProp in jHashes.Descendants().OfType<JProperty>())
         {
@@ -250,10 +262,26 @@ public static class UpdateManager
         }
     }
 
+    public static string GetDatabaseUpdateUrl(string relativePath)
+    {
+        return $"{ClassicPlusDataBaseUrl}{relativePath.Replace("\\", "/")}";
+    }
+
+    public static string GetAppVersionInfoUrl(bool forceBeta = false)
+    {
+        return App.Beta || forceBeta ? AppVersionBetaUrl : AppVersionUrl;
+    }
+
+    public static Version ParseAppVersionNumber(string versionNumber)
+    {
+        var numericVersion = versionNumber.Split('-', '+')[0].Trim();
+        return Version.Parse(numericVersion);
+    }
+
 
     private class VersionParser
     {
-        private Version Version => Version.Parse(NewVersionNumber);
+        private Version Version => ParseAppVersionNumber(NewVersionNumber);
 
         public string NewVersionNumber { get; }
         public string NewVersionUrl { get; }
@@ -266,7 +294,7 @@ public static class UpdateManager
             NewVersionUrl = "";
 
             using var c = MiscUtils.GetDefaultHttpClient();
-            var req = c.GetStreamAsync(App.Beta || forceBeta ? AppVersionBetaUrl : AppVersionUrl);
+            var req = c.GetStreamAsync(GetAppVersionInfoUrl(forceBeta));
             req.Wait();
             var st = req.Result;
 

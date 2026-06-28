@@ -1,5 +1,8 @@
 using System;
 using System.Drawing;
+using System.Diagnostics;
+using System.IO;
+using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Forms;
 using Nostrum.WPF;
@@ -10,10 +13,10 @@ namespace TCC.UI.Controls;
 public class TccTrayIcon
 {
     private bool _connected;
-    private NotifyIcon _trayIcon;
+    private readonly TrayIconLifecycle<NotifyIcon> _trayIconLifecycle;
     private readonly ContextMenu _contextMenu;
-    private readonly Icon? _defaultIcon;
-    private readonly Icon? _connectedIcon;
+    private readonly Icon _defaultIcon;
+    private readonly Icon _connectedIcon;
     private readonly TrayMessageWindow _messageWindow;
 
     public bool Connected
@@ -24,20 +27,20 @@ public class TccTrayIcon
             if (_connected == value) return;
             _connected = value;
 
-            _trayIcon.Icon = _connected ? _connectedIcon : _defaultIcon;
+            _trayIconLifecycle.Current.Icon = _connected ? _connectedIcon : _defaultIcon;
         }
     }
 
     public string Text
     {
-        get => _trayIcon.Text;
-        set => _trayIcon.Text = value;
+        get => _trayIconLifecycle.Current.Text;
+        set => _trayIconLifecycle.Current.Text = value;
     }
 
     public TccTrayIcon()
     {
-        _defaultIcon = MiscUtils.GetEmbeddedIcon("resources/tcc_off.ico");
-        _connectedIcon = MiscUtils.GetEmbeddedIcon("resources/tcc_on.ico");
+        _defaultIcon = TrayIconResources.Load("resources/tcc_off.ico");
+        _connectedIcon = TrayIconResources.Load("resources/tcc_on.ico");
 
         _contextMenu = new ContextMenu();
         _contextMenu.Items.Add(new MenuItem { Header = "Dashboard", Command = new RelayCommand(_ => WindowManager.DashboardWindow.ShowWindow()) });
@@ -52,9 +55,8 @@ public class TccTrayIcon
             })
         });
 
-        _trayIcon = CreateNotifyIcon();
+        _trayIconLifecycle = new TrayIconLifecycle<NotifyIcon>(CreateNotifyIcon, (icon, visible) => icon.Visible = visible);
         _messageWindow = new TrayMessageWindow(() => App.BaseDispatcher.InvokeAsync(RecreateTrayIcon));
-        RecreateTrayIcon();
     }
 
     private NotifyIcon CreateNotifyIcon()
@@ -62,7 +64,6 @@ public class TccTrayIcon
         var trayIcon = new NotifyIcon
         {
             Icon = _connected ? _connectedIcon : _defaultIcon,
-            Visible = true,
             Text = $"{App.AppVersion} - {(_connected ? "connected" : "not connected")}",
         };
         trayIcon.MouseDown += OnMouseDown;
@@ -72,10 +73,7 @@ public class TccTrayIcon
 
     private void RecreateTrayIcon()
     {
-        _trayIcon.Visible = false;
-        _trayIcon.Dispose();
-        _trayIcon = CreateNotifyIcon();
-        _trayIcon.Visible = true;
+        _trayIconLifecycle.Recreate();
     }
 
     private void OnMouseDown(object? sender, MouseEventArgs e)
@@ -91,8 +89,7 @@ public class TccTrayIcon
     public void Dispose()
     {
         _messageWindow.Dispose();
-        _trayIcon.Visible = false;
-        _trayIcon.Dispose();
+        _trayIconLifecycle.Dispose();
     }
 
     private sealed class TrayMessageWindow : NativeWindow, IDisposable
@@ -121,5 +118,97 @@ public class TccTrayIcon
         {
             DestroyHandle();
         }
+    }
+}
+
+public static class TrayIconResources
+{
+    public static Icon Load(string resourcePath)
+    {
+        return LoadFromTccResource(resourcePath)
+            ?? LoadFromFile(resourcePath)
+            ?? LoadFromExecutable()
+            ?? (Icon)SystemIcons.Application.Clone();
+    }
+
+    private static Icon? LoadFromTccResource(string resourcePath)
+    {
+        try
+        {
+            var assemblyName = typeof(TrayIconResources).Assembly.GetName().Name;
+            var normalizedPath = resourcePath.Replace('\\', '/');
+            var uri = new Uri($"pack://application:,,,/{assemblyName};component/{normalizedPath}", UriKind.Absolute);
+            var resource = System.Windows.Application.GetResourceStream(uri);
+            if (resource?.Stream == null) return null;
+
+            using var stream = resource.Stream;
+            return new Icon(stream);
+        }
+        catch
+        {
+            return null;
+        }
+    }
+
+    private static Icon? LoadFromFile(string resourcePath)
+    {
+        try
+        {
+            var relativePath = resourcePath.Replace('/', Path.DirectorySeparatorChar);
+            var path = Path.Combine(App.BasePath, relativePath);
+            return File.Exists(path) ? new Icon(path) : null;
+        }
+        catch
+        {
+            return null;
+        }
+    }
+
+    private static Icon? LoadFromExecutable()
+    {
+        try
+        {
+            var processPath = Environment.ProcessPath ?? Process.GetCurrentProcess().MainModule?.FileName;
+            return string.IsNullOrWhiteSpace(processPath) ? null : Icon.ExtractAssociatedIcon(processPath);
+        }
+        catch
+        {
+            return null;
+        }
+    }
+}
+
+public sealed class TrayIconLifecycle<T> : IDisposable where T : IDisposable
+{
+    private readonly Func<T> _createIcon;
+    private readonly Action<T, bool> _setVisible;
+
+    public T Current { get; private set; }
+
+    public TrayIconLifecycle(Func<T> createIcon, Action<T, bool> setVisible)
+    {
+        _createIcon = createIcon;
+        _setVisible = setVisible;
+        Current = CreateVisibleIcon();
+    }
+
+    public void Recreate()
+    {
+        _setVisible(Current, false);
+        Current.Dispose();
+        Current = CreateVisibleIcon();
+    }
+
+    public void Dispose()
+    {
+        _setVisible(Current, false);
+        Current.Dispose();
+    }
+
+    private T CreateVisibleIcon()
+    {
+        var icon = _createIcon();
+        _setVisible(icon, true);
+        return icon;
     }
 }

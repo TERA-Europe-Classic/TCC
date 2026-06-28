@@ -268,6 +268,7 @@ public class SettingsContainer
             ? Path.Combine(App.BasePath, SettingsGlobals.SettingsFileName)
             : SettingsOverride;
         var settings = new JsonSettingsReader().LoadSettings(settingsPath);
+        settings.LanguageOverride = settings.LanguageOverride.SanitizeForClassicPlus();
         return settings;
     }
 

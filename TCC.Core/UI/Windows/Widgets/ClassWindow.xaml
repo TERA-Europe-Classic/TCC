@@ -1,4 +1,4 @@
-﻿<widgets1:TccWidget x:Class="TCC.UI.Windows.Widgets.ClassWindow"
+<widgets1:TccWidget x:Class="TCC.UI.Windows.Widgets.ClassWindow"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
@@ -7,6 +7,7 @@
              xmlns:widgets="clr-namespace:TCC.ViewModels.Widgets"
              xmlns:classes="clr-namespace:TCC.UI.Controls.Classes"
              xmlns:controls="clr-namespace:TCC.UI.Controls"
+             xmlns:skills="clr-namespace:TCC.UI.Controls.Skills"
              xmlns:widgets1="clr-namespace:TCC.UI.Windows.Widgets"
              Style="{StaticResource BaseWindowStyle}"
              mc:Ignorable="d" 
@@ -87,17 +88,62 @@
                                 WindowName="Class window" 
                                 DataContext="{Binding WindowSettings, RelativeSource={RelativeSource AncestorType=widgets1:TccWidget}}" 
                                 />
-        <ContentControl x:Name="WindowContent" 
-                        Content="{Binding CurrentManager}"
-                        ContentTemplateSelector="{StaticResource ClassWindowTemplateSelector}"  
-                        HorizontalAlignment="Center" 
-                        Grid.Row="1" 
-                        Margin="20"
-                        >
-        <ContentControl.LayoutTransform>
-            <ScaleTransform ScaleX="{Binding WindowSettings.Scale, RelativeSource={RelativeSource AncestorType=widgets1:TccWidget}}" 
-                            ScaleY="{Binding WindowSettings.Scale, RelativeSource={RelativeSource AncestorType=widgets1:TccWidget}}"/>
-        </ContentControl.LayoutTransform>
-    </ContentControl>
+        <Grid x:Name="WindowContent"
+              Grid.Row="1"
+              Margin="20"
+              HorizontalAlignment="Center">
+            <Grid.RowDefinitions>
+                <RowDefinition />
+                <RowDefinition Height="Auto" />
+            </Grid.RowDefinitions>
+            <Grid.LayoutTransform>
+                <ScaleTransform ScaleX="{Binding WindowSettings.Scale, RelativeSource={RelativeSource AncestorType=widgets1:TccWidget}}"
+                                ScaleY="{Binding WindowSettings.Scale, RelativeSource={RelativeSource AncestorType=widgets1:TccWidget}}"/>
+            </Grid.LayoutTransform>
+
+            <ContentControl x:Name="NativeLayoutContent"
+                            Content="{Binding CurrentManager}"
+                            ContentTemplateSelector="{StaticResource ClassWindowTemplateSelector}"
+                            HorizontalAlignment="Center" />
+
+            <Grid Grid.Row="1"
+                  Margin="0 -8 0 0"
+                  HorizontalAlignment="Center">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+
+                <Button Grid.Column="0"
+                        Width="22"
+                        Height="22"
+                        Margin="0 0 6 0"
+                        Padding="4"
+                        VerticalAlignment="Center"
+                        Style="{StaticResource NostrumMainButtonStyle}"
+                        Command="{Binding OpenSkillConfigCommand}"
+                        ToolTip="Configure class skills">
+                    <Path Data="{StaticResource SvgSettings}"
+                          Stretch="Uniform"
+                          Fill="#ccffffff" />
+                </Button>
+
+                <ItemsControl Grid.Column="1"
+                              ItemsSource="{Binding CurrentManager.ExtraSkills}"
+                              HorizontalAlignment="Center"
+                              VerticalAlignment="Center">
+                    <ItemsControl.ItemsPanel>
+                        <ItemsPanelTemplate>
+                            <StackPanel Orientation="Horizontal" />
+                        </ItemsPanelTemplate>
+                    </ItemsControl.ItemsPanel>
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <skills:RhombFixedSkillControl Margin="-8" Padding="8" />
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+            </Grid>
+        </Grid>
     </Grid>
 </widgets1:TccWidget>

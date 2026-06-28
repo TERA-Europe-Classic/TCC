@@ -1,7 +1,12 @@
-﻿using JetBrains.Annotations;
+using JetBrains.Annotations;
 using System;
+using System.ComponentModel;
+using System.Windows.Input;
+using Nostrum.WPF;
+using Nostrum.WPF.Factories;
 using TCC.Data.Skills;
 using TCC.Settings.WindowSettings;
+using TCC.UI.Windows;
 using TCC.Utilities;
 using TCC.Utils;
 using TCC.ViewModels.ClassManagers;
@@ -18,6 +23,9 @@ public class ClassWindowViewModel : TccWindowViewModel
     private Class _currentClass = Class.None;
     private BaseClassLayoutViewModel _currentManager = new NullClassLayoutViewModel();
 
+    public ICommand OpenSkillConfigCommand { get; }
+    public ICollectionViewLiveShaping? SkillsView { get; private set; }
+
     public Class CurrentClass
     {
         get => _currentClass;
@@ -27,6 +35,7 @@ public class ClassWindowViewModel : TccWindowViewModel
 
             _dispatcher.Invoke(() =>
             {
+                CurrentManager.ClearExtraSkills();
                 CurrentManager.Dispose();
                 CurrentManager = _currentClass switch
                 {
@@ -45,6 +54,8 @@ public class ClassWindowViewModel : TccWindowViewModel
                     Class.Ninja => new NinjaLayoutViewModel(),
                     _ => new NullClassLayoutViewModel()
                 };
+                CurrentManager.LoadExtraSkills(_currentClass);
+                LoadSkillsView(_currentClass);
             });
         }
     }
@@ -57,6 +68,8 @@ public class ClassWindowViewModel : TccWindowViewModel
 
     public ClassWindowViewModel(ClassWindowSettings settings) : base(settings)
     {
+        OpenSkillConfigCommand = new RelayCommand(_ => ClassSkillConfigWindow.Instance.ShowWindow());
+
         if (!settings.Enabled) return;
         settings.WarriorShowEdgeChanged += OnWarriorShowEdgeChanged;
         settings.WarriorShowTraverseCutChanged += OnWarriorShowTraverseCutChanged;
@@ -64,6 +77,26 @@ public class ClassWindowViewModel : TccWindowViewModel
         settings.WarriorEdgeModeChanged += OnWarriorEdgeModeChanged;
         settings.ValkyrieShowGodsfallChanged += OnValkyrieShowGodsfallChanged;
         settings.ValkyrieShowRagnarokChanged += OnValkyrieShowRagnarokChanged;
+    }
+
+    public void AddExtraSkill(Skill skill, int index = -1)
+    {
+        CurrentManager.AddExtraSkill(skill, CurrentClass, index);
+    }
+
+    public void RemoveExtraSkill(Cooldown cooldown)
+    {
+        CurrentManager.RemoveExtraSkill(cooldown, CurrentClass);
+    }
+
+    public void MoveExtraSkill(Cooldown cooldown, int insertIndex)
+    {
+        CurrentManager.MoveExtraSkill(cooldown, insertIndex, CurrentClass);
+    }
+
+    public void SaveExtraSkills()
+    {
+        CurrentManager.SaveExtraSkills(CurrentClass);
     }
 
     protected override void OnEnabledChanged(bool enabled)
@@ -89,6 +122,15 @@ public class ClassWindowViewModel : TccWindowViewModel
             ((ClassWindowSettings)Settings).ValkyrieShowRagnarokChanged += OnValkyrieShowRagnarokChanged;
             CurrentClass = Game.Me.Class;
         }
+    }
+
+    private void LoadSkillsView(Class c)
+    {
+        SkillsView = c is Class.None || Game.DB == null
+            ? null
+            : CollectionViewFactory.CreateLiveCollectionView(Game.DB.SkillsDatabase.SkillsForClass(c));
+
+        InvokePropertyChanged(nameof(SkillsView));
     }
 
     private void OnValkyrieShowRagnarokChanged()
@@ -120,7 +162,6 @@ public class ClassWindowViewModel : TccWindowViewModel
     {
         TccUtils.CurrentClassVM<WarriorLayoutViewModel>()?.ExN(nameof(WarriorLayoutViewModel.ShowEdge));
     }
-
 
     protected override void InstallHooks()
     {
@@ -196,20 +237,28 @@ public class ClassWindowViewModel : TccWindowViewModel
 
     private void OnStartCooltimeSkill(S_START_COOLTIME_SKILL m)
     {
-        if (!Game.DB!.SkillsDatabase.TryGetSkill(m.SkillId, Game.Me.Class, out var skill)) return;
+        if (!TryGetSkill(m.SkillId, out var skill)) return;
         CurrentManager.StartSpecialSkill(new Cooldown(skill, m.Cooldown));
     }
 
     private void OnDecreaseCooltimeSkill(S_DECREASE_COOLTIME_SKILL m)
     {
-        if (!Game.DB!.SkillsDatabase.TryGetSkill(m.SkillId, Game.Me.Class, out var skill)) return;
+        if (!TryGetSkill(m.SkillId, out var skill)) return;
+        CurrentManager.ChangeExtraSkill(skill, m.Cooldown);
         CurrentManager.ChangeSpecialSkill(skill, m.Cooldown);
     }
 
     private void OnCrestMessage(S_CREST_MESSAGE m)
     {
         if (m.Type != 6) return;
-        if (!Game.DB!.SkillsDatabase.TryGetSkill(m.SkillId, Game.Me.Class, out var skill)) return;
+        if (!TryGetSkill(m.SkillId, out var skill)) return;
+        CurrentManager.ResetExtraSkill(skill);
         CurrentManager.ResetSpecialSkill(skill);
+    }
+
+    private static bool TryGetSkill(uint skillId, out Skill skill)
+    {
+        return Game.DB!.SkillsDatabase.TryGetSkill(skillId, Game.Me.Class, out skill)
+            || Game.DB.SkillsDatabase.TryGetSkill(skillId, Class.Common, out skill);
     }
 }

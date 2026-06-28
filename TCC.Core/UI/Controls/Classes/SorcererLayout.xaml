@@ -8,8 +8,8 @@
              xmlns:classManagers="clr-namespace:TCC.ViewModels.ClassManagers"
              mc:Ignorable="d" d:DataContext="{d:DesignInstance classManagers:SorcererLayoutViewModel}">
 
-    <Grid Width="Auto" Margin="20" Name="Root">
-        <Grid HorizontalAlignment="Center" Margin="0">
+    <Grid Width="Auto" Margin="20" Name="Root" ClipToBounds="False">
+        <Grid HorizontalAlignment="Center" Margin="0" ClipToBounds="False">
             <Grid.RowDefinitions>
                 <RowDefinition Height="*"/>
                 <RowDefinition Height="Auto"/>
@@ -30,9 +30,34 @@
             <skills:RhombFixedSkillControl DataContext="{Binding Fusion}" />
             <Border BorderBrush="#89a" BorderThickness="1" Width="51" Height="51"
                     Background="{StaticResource RevampBackgroundGradientBrush}" RenderTransformOrigin=".5 .5" Effect="{StaticResource DropShadow}"
-                    RenderTransform="{StaticResource Rotate45}"
-                    Opacity=".7" Grid.Row="1" />
-            <skills:RhombSkillEffectControl DataContext="{Binding ManaBoost}" Margin="-20" Padding="20" Grid.Row="1"/>
+                    Opacity=".7" Grid.Row="1">
+                <Border.RenderTransform>
+                    <TransformGroup>
+                        <RotateTransform Angle="45" />
+                        <TranslateTransform X="-42" />
+                    </TransformGroup>
+                </Border.RenderTransform>
+            </Border>
+            <skills:RhombSkillEffectControl DataContext="{Binding ManaBoost}" Margin="-20" Padding="20" Grid.Row="1">
+                <FrameworkElement.RenderTransform>
+                    <TranslateTransform X="-42" />
+                </FrameworkElement.RenderTransform>
+            </skills:RhombSkillEffectControl>
+            <Border BorderBrush="#89a" BorderThickness="1" Width="51" Height="51"
+                    Background="{StaticResource RevampBackgroundGradientBrush}" RenderTransformOrigin=".5 .5" Effect="{StaticResource DropShadow}"
+                    Opacity=".7" Grid.Row="1">
+                <Border.RenderTransform>
+                    <TransformGroup>
+                        <RotateTransform Angle="45" />
+                        <TranslateTransform X="42" />
+                    </TransformGroup>
+                </Border.RenderTransform>
+            </Border>
+            <skills:RhombSkillEffectControl DataContext="{Binding BurstOfCelerity}" Margin="-20" Padding="20" Grid.Row="1">
+                <FrameworkElement.RenderTransform>
+                    <TranslateTransform X="42" />
+                </FrameworkElement.RenderTransform>
+            </skills:RhombSkillEffectControl>
 
             <!--HP/MP-->
             <!--<UniformGrid Columns="2" 

@@ -35,6 +35,24 @@ public enum LanguageOverride
     SE,
     THA
 }
+
+public static class LanguageOverrideExtensions
+{
+    public static bool IsClassicPlusSupported(this LanguageOverride value)
+    {
+        return value is LanguageOverride.None
+            or LanguageOverride.EU_EN
+            or LanguageOverride.EU_FR
+            or LanguageOverride.EU_GER
+            or LanguageOverride.RU;
+    }
+
+    public static LanguageOverride SanitizeForClassicPlus(this LanguageOverride value)
+    {
+        return value.IsClassicPlusSupported() ? value : LanguageOverride.None;
+    }
+}
+
 public enum ChatChannel
 {
     Say = 0,

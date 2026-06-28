@@ -12,6 +12,7 @@ public class SorcererLayoutViewModel : BaseClassLayoutViewModel
     private long _latestCooldown;
 
     public SkillWithEffect ManaBoost { get; set; }
+    public SkillWithEffect BurstOfCelerity { get; set; }
 
     public Cooldown Fusion { get; set; }
     public Skill PrimeFlame { get; set; }
@@ -54,6 +55,7 @@ public class SorcererLayoutViewModel : BaseClassLayoutViewModel
         SorcererAbnormalityTracker.BoostChanged += OnBoostChanged;
 
         Game.DB!.SkillsDatabase.TryGetSkill(340200, Class.Sorcerer, out var mb);
+        Game.DB.SkillsDatabase.TryGetSkill(240100, Class.Sorcerer, out var burstOfCelerity);
         Game.DB.SkillsDatabase.TryGetSkill(360100, Class.Sorcerer, out var fusion);
         Game.DB.SkillsDatabase.TryGetSkill(360600, Class.Sorcerer, out var fusionBoost);
         Game.DB.SkillsDatabase.TryGetSkill(360200, Class.Sorcerer, out var primeFlame);
@@ -67,6 +69,7 @@ public class SorcererLayoutViewModel : BaseClassLayoutViewModel
         FusionSkillBoost = fusionBoost;
 
         ManaBoost = new SkillWithEffect(_dispatcher, mb);
+        BurstOfCelerity = new SkillWithEffect(_dispatcher, burstOfCelerity);
         Fusion = new Cooldown(fusion, false);
 
         _sw = new Stopwatch();
@@ -80,6 +83,7 @@ public class SorcererLayoutViewModel : BaseClassLayoutViewModel
     public override void Dispose()
     {
         ManaBoost.Dispose();
+        BurstOfCelerity.Dispose();
         Fusion.Dispose();
         SorcererAbnormalityTracker.BoostChanged -= OnBoostChanged;
     }
@@ -89,6 +93,12 @@ public class SorcererLayoutViewModel : BaseClassLayoutViewModel
         if (sk.Skill.IconName == ManaBoost.Cooldown.Skill.IconName)
         {
             ManaBoost.StartCooldown(sk.Duration);
+            return true;
+        }
+
+        if (sk.Skill.IconName == BurstOfCelerity.Cooldown.Skill.IconName)
+        {
+            BurstOfCelerity.StartCooldown(sk.Duration);
             return true;
         }
 
