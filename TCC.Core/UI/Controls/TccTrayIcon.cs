@@ -96,11 +96,15 @@ public class TccTrayIcon
     {
         private readonly Action _onTaskbarCreated;
         private readonly int _taskbarCreatedMessageId;
+        private readonly int _tccCloseMessageId;
+        private readonly int _currentProcessId;
 
         public TrayMessageWindow(Action onTaskbarCreated)
         {
             _onTaskbarCreated = onTaskbarCreated;
             _taskbarCreatedMessageId = TrayMessageUtils.GetTaskbarCreatedMessageId();
+            _tccCloseMessageId = TrayMessageUtils.GetTccCloseMessageId();
+            _currentProcessId = Process.GetCurrentProcess().Id;
             CreateHandle(new CreateParams());
         }
 
@@ -109,6 +113,12 @@ public class TccTrayIcon
             if (TrayMessageUtils.IsTaskbarCreatedMessage(m.Msg, _taskbarCreatedMessageId))
             {
                 _onTaskbarCreated();
+            }
+
+            if (TrayMessageUtils.IsTccCloseMessage(m.Msg, _tccCloseMessageId, m.WParam, _currentProcessId))
+            {
+                TCC.Utils.Utilities.RequestClose();
+                return;
             }
 
             base.WndProc(ref m);
