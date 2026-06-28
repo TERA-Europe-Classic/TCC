@@ -8,14 +8,15 @@ public class IconUpdateSourceTests
     public void IconUpdaterUsesClassicPlusIconRepository()
     {
         Assert.Equal(
-            "https://github.com/TERA-Europe-Classic/tera-used-icons/archive/master.zip",
+            "https://github.com/TERA-Europe-Classic/tera-used-icons/archive/main.zip",
             IconUpdateSource.ArchiveUrl);
         Assert.Equal(
-            "https://raw.githubusercontent.com/TERA-Europe-Classic/tera-used-icons/master/hashes.json",
+            "https://raw.githubusercontent.com/TERA-Europe-Classic/tera-used-icons/main/hashes.json",
             IconUpdateSource.HashesUrl);
         Assert.Equal(
-            "https://raw.githubusercontent.com/TERA-Europe-Classic/tera-used-icons/master/icon_equipments/ring_04_tex.png",
+            "https://raw.githubusercontent.com/TERA-Europe-Classic/tera-used-icons/main/icon_equipments/ring_04_tex.png",
             IconUpdateSource.GetIconUrl("icon_equipments", "ring_04_tex.png"));
+        Assert.Equal("tera-used-icons-main", IconUpdateSource.ArchiveDirectoryName);
     }
 
     [Fact]

@@ -18,7 +18,7 @@ namespace TCC.Update;
 
 public class IconsUpdater
 {
-    private static string DownloadedIconsDir => Path.Combine(App.BasePath, "tera-used-icons-master");
+    private static string DownloadedIconsDir => Path.Combine(App.BasePath, IconUpdateSource.ArchiveDirectoryName);
 
     private ProgressNotificationInfo? _n;
 
@@ -216,8 +216,9 @@ public class IconsUpdater
             CleanTempIcons();
             _n?.Dispose(4000);
         }
-        catch
+        catch (Exception e)
         {
+            Log.F($"Failed to extract icons from {Path.Combine(App.BasePath, "icons.zip")}: {e}");
             var res = TccMessageBox.Show(SR.IconExtractFailed, MessageBoxType.ConfirmationWithYesNo);
             if (res == MessageBoxResult.Yes)
                 Extract();
@@ -237,7 +238,7 @@ public class IconsUpdater
         try
         {
             Directory.Delete(DownloadedIconsDir, true);
-            File.Delete("icons.zip");
+            File.Delete(Path.Combine(App.BasePath, "icons.zip"));
         }
         catch
         {
