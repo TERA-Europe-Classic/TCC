@@ -48,11 +48,13 @@ public static class PacketAnalyzer
         Factory = new MessageFactory();
 
         Sniffer = SnifferFactory.Create(mode, toolboxMode);
+        Processor = new MessageProcessor();
+        Utilities.GetMainDispatcher().Invoke(() => ProcessorReady?.Invoke());
+
         Sniffer.NewConnection += OnNewConnection;
         Sniffer.EndConnection += OnEndConnection;
         Sniffer.MessageReceived += EnqueuePacket;
         Sniffer.Enabled = true;
-
 
         AnalysisThread = new Thread(PacketAnalysisLoop) { Name = "Analysis" };
         AnalysisThread.Start();
@@ -60,9 +62,6 @@ public static class PacketAnalyzer
 
     private static void PacketAnalysisLoop()
     {
-        Processor = new MessageProcessor();
-
-        if (ProcessorReady != null) Utilities.GetMainDispatcher().InvokeAsync(ProcessorReady);
         while (true)
         {
             if (!Packets.TryDequeue(out var pkt))
