@@ -6,17 +6,18 @@ namespace TCC.Tests;
 public class ClassWindowConfigParserTests
 {
     [Fact]
-    public void DefaultsToEmptyExtraSkillList()
+    public void DefaultsToEmptyClassSkillListWhenNoConfigExists()
     {
         using var temp = new TempResourcesRoot();
 
-        var data = new ClassWindowConfigParser(Class.Sorcerer, temp.Path).Data;
+        var parser = new ClassWindowConfigParser(Class.Sorcerer, temp.Path);
 
-        Assert.Empty(data.SkillIds);
+        Assert.False(parser.Exists);
+        Assert.Empty(parser.Data.SkillIds);
     }
 
     [Fact]
-    public void SavesAndLoadsPerClassExtraSkillIds()
+    public void SavesAndLoadsPerClassSkillIds()
     {
         using var temp = new TempResourcesRoot();
         var data = new ClassWindowConfigData();
@@ -25,9 +26,10 @@ public class ClassWindowConfigParserTests
 
         ClassWindowConfigParser.Save(Class.Sorcerer, data, temp.Path);
 
-        var loaded = new ClassWindowConfigParser(Class.Sorcerer, temp.Path).Data;
+        var parser = new ClassWindowConfigParser(Class.Sorcerer, temp.Path);
 
-        Assert.Equal([240100u, 340200u], loaded.SkillIds);
+        Assert.True(parser.Exists);
+        Assert.Equal([240100u, 340200u], parser.Data.SkillIds);
         Assert.False(File.Exists(Path.Combine(temp.Path, "config", "class-window-skills", "lancer-skills.json")));
     }
 

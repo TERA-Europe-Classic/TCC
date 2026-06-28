@@ -1,16 +1,17 @@
-﻿using System.ComponentModel;
+using System.Collections.Generic;
+using System.ComponentModel;
+using System.Linq;
+using TCC.Data;
 using TCC.Data.Skills;
-using TeraDataLite;
 
 namespace TCC.ViewModels.ClassManagers;
 
 public class NinjaLayoutViewModel : BaseClassLayoutViewModel
 {
+    private const uint InnerHarmonySkillId = 230100;
     private bool _focusOn;
 
-    public Cooldown BurningHeart { get; set; }
-    public Cooldown FireAvalanche { get; set; }
-    public SkillWithEffect InnerHarmony { get; set; }
+    protected override IReadOnlyList<uint> DefaultClassSkillIds { get; } = [80200, 150700, 230100];
 
     public bool FocusOn
     {
@@ -18,50 +19,49 @@ public class NinjaLayoutViewModel : BaseClassLayoutViewModel
         set => RaiseAndSetIfChanged(value, ref _focusOn);
     }
 
-    private void FlashOnMaxSt(object? sender, PropertyChangedEventArgs e)
-    {
-        if (e.PropertyName != nameof(StaminaTracker.Maxed)) return;
-        BurningHeart.FlashOnAvailable = StaminaTracker.Maxed;
-        FireAvalanche.FlashOnAvailable = StaminaTracker.Maxed;
-    }
-
     public NinjaLayoutViewModel()
     {
-        Game.DB!.SkillsDatabase.TryGetSkill(150700, Class.Ninja, out var bh);
-        Game.DB.SkillsDatabase.TryGetSkill(80200, Class.Ninja, out var fa);
-        Game.DB.SkillsDatabase.TryGetSkill(230100, Class.Ninja, out var ih);
-
-        BurningHeart = new Cooldown(bh,  false) { CanFlash = true };
-        FireAvalanche = new Cooldown(fa,  false) { CanFlash = true };
-        InnerHarmony = new SkillWithEffect(_dispatcher, ih);
-
         StaminaTracker.PropertyChanged += FlashOnMaxSt;
-
     }
 
     public override void Dispose()
     {
-        BurningHeart.Dispose();
-        FireAvalanche.Dispose();
-        InnerHarmony.Dispose();
-            
+        StaminaTracker.PropertyChanged -= FlashOnMaxSt;
+        base.Dispose();
     }
 
-    protected override bool StartSpecialSkillImpl(Cooldown sk)
+    protected override void ConfigureExtraSkill(Cooldown cooldown)
     {
-        if (sk.Skill.IconName == FireAvalanche.Skill.IconName)
-        {
-            FireAvalanche.Start(sk.Duration);
-            return true;
-        }
-        if (sk.Skill.IconName == BurningHeart.Skill.IconName)
-        {
-            BurningHeart.Start(sk.Duration);
-            return true;
-        }
+        cooldown.CanFlash = true;
+        cooldown.FlashOnAvailable = StaminaTracker.Maxed;
+    }
 
-        if (sk.Skill.IconName != InnerHarmony.Cooldown.Skill.IconName) return false;
-        InnerHarmony.StartCooldown(sk.Duration);
-        return true;
+    public void StartInnerHarmonyEffect(ulong duration)
+    {
+        FindConfiguredSkill(InnerHarmonySkillId)?.Start(duration);
+    }
+
+    public void RefreshInnerHarmonyEffect(ulong duration)
+    {
+        FindConfiguredSkill(InnerHarmonySkillId)?.Refresh(duration, CooldownMode.Normal);
+    }
+
+    public void StopInnerHarmonyEffect()
+    {
+        FindConfiguredSkill(InnerHarmonySkillId)?.Stop();
+    }
+
+    private void FlashOnMaxSt(object? sender, PropertyChangedEventArgs e)
+    {
+        if (e.PropertyName != nameof(StaminaTracker.Maxed)) return;
+        foreach (var cooldown in ExtraSkills.ToSyncList())
+        {
+            cooldown.FlashOnAvailable = StaminaTracker.Maxed;
+        }
+    }
+
+    private Cooldown? FindConfiguredSkill(uint skillId)
+    {
+        return ExtraSkills.ToSyncList().FirstOrDefault(cooldown => cooldown.Skill.Id == skillId);
     }
 }

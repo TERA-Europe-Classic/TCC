@@ -9,6 +9,7 @@ namespace TCC.Settings;
 public class ClassWindowConfigParser
 {
     public ClassWindowConfigData Data { get; }
+    public bool Exists { get; }
 
     public ClassWindowConfigParser(Class c, string? resourcesPath = null)
     {
@@ -19,6 +20,7 @@ public class ClassWindowConfigParser
             return;
         }
 
+        Exists = true;
         Data = JsonConvert.DeserializeObject<ClassWindowConfigData>(
                    File.ReadAllText(filePath),
                    TccUtils.GetDefaultJsonSerializerSettings())

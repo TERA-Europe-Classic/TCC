@@ -96,19 +96,6 @@
                     </TransformGroup>
                 </FrameworkElement.RenderTransform>
             </Border>
-            <skills:RhombFixedSkillControl DataContext="{Binding FireAvalanche}" HorizontalAlignment="Center"
-                                      VerticalAlignment="Center">
-                <FrameworkElement.RenderTransform>
-                    <TranslateTransform X="45" Y="45" />
-                </FrameworkElement.RenderTransform>
-            </skills:RhombFixedSkillControl>
-            <skills:RhombFixedSkillControl DataContext="{Binding BurningHeart}" HorizontalAlignment="Center"
-                                      VerticalAlignment="Center">
-                <FrameworkElement.RenderTransform>
-                    <TranslateTransform X="-45" Y="45" />
-                </FrameworkElement.RenderTransform>
-
-            </skills:RhombFixedSkillControl>
             <Border BorderBrush="#89a" BorderThickness="1" Width="51" Height="51"
               Background="{StaticResource RevampBackgroundGradientBrush}" RenderTransformOrigin=".5 .5" Effect="{StaticResource DropShadow}"
               Opacity=".7">
@@ -119,12 +106,50 @@
                     </TransformGroup>
                 </FrameworkElement.RenderTransform>
             </Border>
-            <skills:RhombSkillEffectControl DataContext="{Binding InnerHarmony}" HorizontalAlignment="Center"
-                                      VerticalAlignment="Center">
-                <FrameworkElement.RenderTransform>
-                    <TranslateTransform X="0" Y="90" />
-                </FrameworkElement.RenderTransform>
-            </skills:RhombSkillEffectControl>
+            <ItemsControl ItemsSource="{Binding ExtraSkills}"
+                          AlternationCount="3"
+                          HorizontalAlignment="Center"
+                          VerticalAlignment="Center">
+                <ItemsControl.ItemsPanel>
+                    <ItemsPanelTemplate>
+                        <Grid />
+                    </ItemsPanelTemplate>
+                </ItemsControl.ItemsPanel>
+                <ItemsControl.ItemContainerStyle>
+                    <Style TargetType="ContentPresenter">
+                        <Setter Property="HorizontalAlignment" Value="Center" />
+                        <Setter Property="VerticalAlignment" Value="Center" />
+                        <Setter Property="RenderTransform">
+                            <Setter.Value>
+                                <TranslateTransform X="45" Y="45" />
+                            </Setter.Value>
+                        </Setter>
+                        <Style.Triggers>
+                            <DataTrigger Binding="{Binding (ItemsControl.AlternationIndex), RelativeSource={RelativeSource Self}}"
+                                         Value="1">
+                                <Setter Property="RenderTransform">
+                                    <Setter.Value>
+                                        <TranslateTransform X="-45" Y="45" />
+                                    </Setter.Value>
+                                </Setter>
+                            </DataTrigger>
+                            <DataTrigger Binding="{Binding (ItemsControl.AlternationIndex), RelativeSource={RelativeSource Self}}"
+                                         Value="2">
+                                <Setter Property="RenderTransform">
+                                    <Setter.Value>
+                                        <TranslateTransform X="0" Y="90" />
+                                    </Setter.Value>
+                                </Setter>
+                            </DataTrigger>
+                        </Style.Triggers>
+                    </Style>
+                </ItemsControl.ItemContainerStyle>
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate>
+                        <skills:RhombFixedSkillControl />
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
             <Polygon Fill="{StaticResource RevampBackgroundBrush}"
                Points="0 0 1 0 2 1 -1 1"
                Stroke="#89a"

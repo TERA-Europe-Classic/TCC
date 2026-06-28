@@ -116,7 +116,7 @@
 
                 <TextBlock Style="{StaticResource DefaultTextStyle}" Margin="2 5"
                            Opacity=".8" FontWeight="Thin" FontSize="16">
-                    Class window
+                    Class window slots
                 </TextBlock>
                 <Border Background="{StaticResource RevampDarkerBackgroundBrush}"
                         Grid.Row="1" Style="{StaticResource RevampBorderStyle}"/>
@@ -133,7 +133,7 @@
 
         <TextBlock Grid.Row="2" Foreground="#6fff" HorizontalAlignment="Center" Margin="10"
                    TextAlignment="Center">
-            Drag skills into the class window list
+            Drag skills into the class window slots
         </TextBlock>
     </Grid>
 </windows:TccWindow>

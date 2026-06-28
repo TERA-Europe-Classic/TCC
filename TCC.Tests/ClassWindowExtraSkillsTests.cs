@@ -5,7 +5,7 @@ namespace TCC.Tests;
 public class ClassWindowExtraSkillsTests
 {
     [Fact]
-    public void ClassWindowRendersConfigurableExtraSkillRow()
+    public void ClassWindowDoesNotRenderConfigurableSkillsInSeparateRow()
     {
         var layout = XDocument.Load(Path.Combine(
             FindRepoRoot().FullName,
@@ -21,10 +21,49 @@ public class ClassWindowExtraSkillsTests
                 element.Name.LocalName == "ItemsControl"
                 && (string?)element.Attribute("ItemsSource") == "{Binding CurrentManager.ExtraSkills}");
 
-        Assert.NotNull(extraSkillsItemsControl);
+        Assert.Null(extraSkillsItemsControl);
+    }
+
+    [Fact]
+    public void ClassWindowSkillConfigButtonIsTopLeftHoverOverlay()
+    {
+        var layout = XDocument.Load(Path.Combine(
+            FindRepoRoot().FullName,
+            "TCC.Core",
+            "UI",
+            "Windows",
+            "Widgets",
+            "ClassWindow.xaml"));
+
+        var style = layout
+            .Descendants()
+            .SingleOrDefault(element =>
+                element.Name.LocalName == "Style"
+                && (string?)element.Attribute("{http://schemas.microsoft.com/winfx/2006/xaml}Key") == "ClassSkillConfigButtonStyle");
+
+        Assert.NotNull(style);
         Assert.Contains(
-            extraSkillsItemsControl!.Descendants(),
-            element => element.Name.LocalName == "RhombFixedSkillControl");
+            style!.Descendants(),
+            element =>
+                element.Name.LocalName == "Setter"
+                && (string?)element.Attribute("Property") == "Opacity"
+                && (string?)element.Attribute("Value") == "0");
+        Assert.Contains(
+            style.Descendants(),
+            element =>
+                element.Name.LocalName == "Setter"
+                && (string?)element.Attribute("Property") == "HorizontalAlignment"
+                && (string?)element.Attribute("Value") == "Left");
+        Assert.Contains(
+            style.Descendants(),
+            element =>
+                element.Name.LocalName == "Setter"
+                && (string?)element.Attribute("Property") == "VerticalAlignment"
+                && (string?)element.Attribute("Value") == "Top");
+        Assert.Contains(
+            style.Descendants(),
+            element => element.Name.LocalName == "DataTrigger"
+                       && (string?)element.Attribute("Binding") == "{Binding IsMouseOver, RelativeSource={RelativeSource AncestorType=Grid}}");
     }
 
     [Fact]
@@ -39,6 +78,54 @@ public class ClassWindowExtraSkillsTests
 
         Assert.Contains("OpenSkillConfigCommand", source);
         Assert.Contains("ClassSkillConfigWindow.Instance.ShowWindow()", source);
+    }
+
+    [Fact]
+    public void NinjaNativeSkillSlotsUseConfigurableClassSkillList()
+    {
+        var layout = XDocument.Load(Path.Combine(
+            FindRepoRoot().FullName,
+            "TCC.Core",
+            "UI",
+            "Controls",
+            "Classes",
+            "NinjaLayout.xaml"));
+
+        var configurableSlots = layout
+            .Descendants()
+            .SingleOrDefault(element =>
+                element.Name.LocalName == "ItemsControl"
+                && (string?)element.Attribute("ItemsSource") == "{Binding ExtraSkills}");
+
+        Assert.NotNull(configurableSlots);
+        Assert.Contains(
+            configurableSlots!.Descendants(),
+            element => element.Name.LocalName == "RhombFixedSkillControl");
+
+        var fixedBindings = layout
+            .Descendants()
+            .Where(element => element.Name.LocalName is "RhombFixedSkillControl" or "RhombSkillEffectControl")
+            .Select(element => (string?)element.Attribute("DataContext"))
+            .Where(value => value != null)
+            .ToList();
+
+        Assert.DoesNotContain("{Binding FireAvalanche}", fixedBindings);
+        Assert.DoesNotContain("{Binding BurningHeart}", fixedBindings);
+        Assert.DoesNotContain("{Binding InnerHarmony}", fixedBindings);
+    }
+
+    [Fact]
+    public void NinjaDefaultsToOriginalThreeClassWindowSkills()
+    {
+        var source = File.ReadAllText(Path.Combine(
+            FindRepoRoot().FullName,
+            "TCC.Core",
+            "ViewModels",
+            "ClassManagers",
+            "NinjaLayoutViewModel.cs"));
+
+        Assert.Contains("DefaultClassSkillIds", source);
+        Assert.Contains("[80200, 150700, 230100]", source);
     }
 
     private static DirectoryInfo FindRepoRoot()

@@ -61,7 +61,7 @@ public class NinjaAbnormalityTracker : AbnormalityTracker
         if (p.AbnormalityId != InnerHarmonyBuffId) return;
         if (!TryGetClassViewModel<NinjaLayoutViewModel>(out var vm)) return;
 
-        vm.InnerHarmony.StartEffect(p.Duration);
+        vm.StartInnerHarmonyEffect(p.Duration);
     }
 
     private static void CheckInnerHarmonyRefresh(S_ABNORMALITY_REFRESH p)
@@ -69,7 +69,7 @@ public class NinjaAbnormalityTracker : AbnormalityTracker
         if (p.AbnormalityId != InnerHarmonyBuffId) return;
         if (!TryGetClassViewModel<NinjaLayoutViewModel>(out var vm)) return;
 
-        vm.InnerHarmony.RefreshEffect(p.Duration);
+        vm.RefreshInnerHarmonyEffect(p.Duration);
     }
 
     private static void CheckInnerHarmonyEnd(S_ABNORMALITY_END p)
@@ -77,6 +77,6 @@ public class NinjaAbnormalityTracker : AbnormalityTracker
         if (p.AbnormalityId != InnerHarmonyBuffId) return;
         if (!TryGetClassViewModel<NinjaLayoutViewModel>(out var vm)) return;
 
-        vm.InnerHarmony.StopEffect();
+        vm.StopInnerHarmonyEffect();
     }
 }

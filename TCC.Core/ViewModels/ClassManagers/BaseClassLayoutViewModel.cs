@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using Nostrum.WPF.ThreadSafe;
 using TCC.Data;
@@ -11,6 +12,9 @@ namespace TCC.ViewModels.ClassManagers;
 public abstract class BaseClassLayoutViewModel : ThreadSafeObservableObject, IDisposable
 {
     public ThreadSafeObservableCollection<Cooldown> ExtraSkills { get; }
+    protected virtual IReadOnlyList<uint> DefaultClassSkillIds => [];
+    protected virtual int ClassSkillCapacity => DefaultClassSkillIds.Count;
+    public bool HasConfigurableSkillSlots => ClassSkillCapacity > 0;
 
     protected BaseClassLayoutViewModel()
     {
@@ -45,8 +49,9 @@ public abstract class BaseClassLayoutViewModel : ThreadSafeObservableObject, IDi
         ClearExtraSkills();
         if (c is Class.None || Game.DB == null) return;
 
-        var data = new ClassWindowConfigParser(c).Data;
-        foreach (var skillId in data.SkillIds.Distinct())
+        var parser = new ClassWindowConfigParser(c);
+        var skillIds = parser.Exists ? parser.Data.SkillIds : DefaultClassSkillIds;
+        foreach (var skillId in skillIds.Distinct().Take(ClassSkillCapacity))
         {
             if (Game.DB.SkillsDatabase.TryGetSkill(skillId, c, out var skill)
              || Game.DB.SkillsDatabase.TryGetSkill(skillId, Class.Common, out skill))
@@ -59,9 +64,11 @@ public abstract class BaseClassLayoutViewModel : ThreadSafeObservableObject, IDi
     public bool AddExtraSkill(Skill skill, Class c, int index = -1, bool save = true)
     {
         if (skill.Id == 0 || skill.Class is Class.None) return false;
+        if (ClassSkillCapacity == 0 || ExtraSkills.Count >= ClassSkillCapacity) return false;
         if (ExtraSkills.ToSyncList().Any(x => x.Skill.IconName == skill.IconName)) return false;
 
         var cooldown = new Cooldown(skill, false, CooldownType.Skill, _dispatcher);
+        ConfigureExtraSkill(cooldown);
         if (index < 0 || index > ExtraSkills.Count)
         {
             ExtraSkills.Add(cooldown);
@@ -143,6 +150,10 @@ public abstract class BaseClassLayoutViewModel : ThreadSafeObservableObject, IDi
         }
 
         ExtraSkills.Clear();
+    }
+
+    protected virtual void ConfigureExtraSkill(Cooldown cooldown)
+    {
     }
 
     private bool StartExtraSkill(Cooldown cd)
