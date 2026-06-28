@@ -19,7 +19,6 @@ namespace TCC.Update;
 public class IconsUpdater
 {
     private static string DownloadedIconsDir => Path.Combine(App.BasePath, "tera-used-icons-master");
-    private const string IconsUrl = "https://github.com/Foglio1024/tera-used-icons/archive/master.zip";
 
     private ProgressNotificationInfo? _n;
 
@@ -42,7 +41,7 @@ public class IconsUpdater
         try
         {
             using var c = MiscUtils.GetDefaultHttpClient();
-            hashFile = await c.GetStringAsync(new Uri("https://github.com/Foglio1024/tera-used-icons/raw/master/hashes.json"));
+            hashFile = await c.GetStringAsync(new Uri(IconUpdateSource.HashesUrl));
         }
         catch (Exception e)
         {
@@ -60,9 +59,7 @@ public class IconsUpdater
             {
                 var filePath = Path.Combine(dirPath, jFile.Name);
                 var remoteHash = jFile.Value.ToString();
-                var localHash = HashUtils.GenerateFileHash(filePath);
-
-                if (File.Exists(filePath) && localHash == remoteHash) continue;
+                if (!IconUpdateSource.NeedsUpdate(filePath, remoteHash)) continue;
                 mismatched.Add($"{dirPath}/{jFile.Name}");
             }
         }
@@ -126,7 +123,7 @@ public class IconsUpdater
                 _n = WindowManager.ViewModels.NotificationAreaVM.GetNotification<ProgressNotificationInfo>(notifId);
             }
 
-            await c.DownloadFileAsync(new Uri(IconsUrl), Path.Combine(App.BasePath, "icons.zip"));
+            await c.DownloadFileAsync(new Uri(IconUpdateSource.ArchiveUrl), Path.Combine(App.BasePath, "icons.zip"));
         }
         catch (Exception)
         {
@@ -146,7 +143,7 @@ public class IconsUpdater
                 var splitPath = icon.Split('\\');
                 var dir = splitPath.Last().Split('/')[0];
                 var iconName = splitPath.Last().Split('/')[1];
-                var url = $"https://github.com/Foglio1024/tera-used-icons/raw/master/{dir}/{iconName}";
+                var url = IconUpdateSource.GetIconUrl(dir, iconName);
                 using var c = MiscUtils.GetDefaultHttpClient();
                 c.DownloadFileAsync(url, Path.Combine(App.ResourcesPath, "images", dir, iconName)).Wait();
                 if (_n == null) continue;

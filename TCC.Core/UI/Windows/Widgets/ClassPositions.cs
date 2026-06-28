@@ -50,6 +50,15 @@ public class ClassPositions
         }
     }
 
+    public void SetAll(Point position, ButtonsPosition buttons)
+    {
+        foreach (Class cl in Enum.GetValues(typeof(Class)))
+        {
+            Classes[cl].Position = position;
+            Classes[cl].Buttons = buttons;
+        }
+    }
+
     public void ApplyCorrection(Size sc)
     {
         foreach (Class cl in Enum.GetValues(typeof(Class)))

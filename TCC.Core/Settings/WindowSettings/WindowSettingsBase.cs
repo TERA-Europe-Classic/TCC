@@ -319,7 +319,7 @@ public class WindowSettingsBase : ThreadSafeObservableObject
         //Log.CW($"[{GetType().Name}] {nameof(MakePositionsGlobal)}()");
 
         var currentPos = new Point(X, Y);
-        Positions.SetAllPositions(currentPos);
+        Positions.SetAll(currentPos, ButtonsPosition);
         App.Settings.Save();
     }
 

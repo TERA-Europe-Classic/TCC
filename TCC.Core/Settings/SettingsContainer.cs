@@ -201,6 +201,10 @@ public class SettingsContainer
         BuffWindowSettings = new BuffWindowSettings();
         ClassWindowSettings = new ClassWindowSettings();
         GroupWindowSettings = new GroupWindowSettings();
+        AbnormalitySettings.Self.ShowAll = BuffWindowSettings.ShowAll;
+#pragma warning disable CS0612
+        AbnormalitySettings.Group.ShowAll = GroupWindowSettings.ShowAllAbnormalities;
+#pragma warning restore CS0612
         FlightGaugeWindowSettings = new FlightWindowSettings();
         FloatingButtonSettings = new FloatingButtonWindowSettings();
         CivilUnrestWindowSettings = new CivilUnrestWindowSettings();
@@ -276,7 +280,13 @@ public class SettingsContainer
     {
         var toRemove = ChatWindowsSettings.Where(s => s.Tabs.Count == 0).ToList();
         foreach (var s in toRemove) ChatWindowsSettings.Remove(s);
-        App.BaseDispatcher.InvokeAsync(() => new JsonSettingsWriter().Save());
+        if (App.BaseDispatcher.CheckAccess())
+        {
+            new JsonSettingsWriter().Save();
+            return;
+        }
+
+        App.BaseDispatcher.Invoke(() => new JsonSettingsWriter().Save());
     }
 }
 
