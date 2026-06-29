@@ -77,7 +77,7 @@ public class ReaperAbnormalityTracker : AbnormalityTracker
         if (p.AbnormalityId != PowerlinkedDoubleShearId) return;
         if (!TryGetClassViewModel<ReaperLayoutViewModel>(out var vm)) return;
 
-        vm.PowerlinkedDoubleShear.RefreshEffect(p.Duration);
+        vm.RefreshSkillEffect(vm.PowerlinkedDoubleShear, p.Duration);
     }
 
     private static void PowerlinkedDoubleShearRefresh(S_ABNORMALITY_REFRESH p)
@@ -85,7 +85,7 @@ public class ReaperAbnormalityTracker : AbnormalityTracker
         if (p.AbnormalityId != PowerlinkedDoubleShearId) return;
         if (!TryGetClassViewModel<ReaperLayoutViewModel>(out var vm)) return;
 
-        vm.PowerlinkedDoubleShear.RefreshEffect(p.Duration);
+        vm.RefreshSkillEffect(vm.PowerlinkedDoubleShear, p.Duration);
     }
 
     private static void PowerlinkedDoubleShearEnd(S_ABNORMALITY_END p)
@@ -93,7 +93,7 @@ public class ReaperAbnormalityTracker : AbnormalityTracker
         if (PowerlinkedDoubleShearId != p.AbnormalityId) return;
         if (!TryGetClassViewModel<ReaperLayoutViewModel>(out var vm)) return;
 
-        vm.PowerlinkedDoubleShear.StopEffect();
+        vm.StopSkillEffect(vm.PowerlinkedDoubleShear);
     }
 
     private static void PowerlinkedDeathSpiralBegin(S_ABNORMALITY_BEGIN p)
@@ -101,7 +101,7 @@ public class ReaperAbnormalityTracker : AbnormalityTracker
         if (p.AbnormalityId != PowerlinkedDeathSpiralId) return;
         if (!TryGetClassViewModel<ReaperLayoutViewModel>(out var vm)) return;
 
-        vm.PowerlinkedDeathSpiral.RefreshEffect(p.Duration);
+        vm.RefreshSkillEffect(vm.PowerlinkedDeathSpiral, p.Duration);
     }
 
     private static void PowerlinkedDeathSpiralRefresh(S_ABNORMALITY_REFRESH p)
@@ -109,7 +109,7 @@ public class ReaperAbnormalityTracker : AbnormalityTracker
         if (p.AbnormalityId != PowerlinkedDeathSpiralId) return;
         if (!TryGetClassViewModel<ReaperLayoutViewModel>(out var vm)) return;
 
-        vm.PowerlinkedDeathSpiral.RefreshEffect(p.Duration);
+        vm.RefreshSkillEffect(vm.PowerlinkedDeathSpiral, p.Duration);
     }
 
     private static void PowerlinkedDeathSpiralEnd(S_ABNORMALITY_END p)
@@ -117,7 +117,7 @@ public class ReaperAbnormalityTracker : AbnormalityTracker
         if (PowerlinkedDeathSpiralId != p.AbnormalityId) return;
         if (!TryGetClassViewModel<ReaperLayoutViewModel>(out var vm)) return;
 
-        vm.PowerlinkedDeathSpiral.StopEffect();
+        vm.StopSkillEffect(vm.PowerlinkedDeathSpiral);
     }
 
     private static void CheckAssassinateBegin(S_ABNORMALITY_BEGIN p)
@@ -125,7 +125,7 @@ public class ReaperAbnormalityTracker : AbnormalityTracker
         if (AssassinateId != p.AbnormalityId) return;
         if (!TryGetClassViewModel<ReaperLayoutViewModel>(out var vm)) return;
 
-        vm.ShroudedEscape.StartEffect(p.Duration);
+        vm.StartSkillEffect(vm.ShroudedEscape, p.Duration);
     }
 
     private static void CheckAssassinateRefresh(S_ABNORMALITY_REFRESH p)
@@ -133,7 +133,7 @@ public class ReaperAbnormalityTracker : AbnormalityTracker
         if (AssassinateId != p.AbnormalityId) return;
         if (!TryGetClassViewModel<ReaperLayoutViewModel>(out var vm)) return;
 
-        vm.ShroudedEscape.RefreshEffect(p.Duration);
+        vm.RefreshSkillEffect(vm.ShroudedEscape, p.Duration);
     }
 
     private static void CheckAssassinateEnd(S_ABNORMALITY_END p)
@@ -141,7 +141,7 @@ public class ReaperAbnormalityTracker : AbnormalityTracker
         if (AssassinateId != p.AbnormalityId) return;
         if (!TryGetClassViewModel<ReaperLayoutViewModel>(out var vm)) return;
 
-        vm.ShroudedEscape.StopEffect();
+        vm.StopSkillEffect(vm.ShroudedEscape);
     }
 
     private static void CheckShadowReapingBegin(S_ABNORMALITY_BEGIN p)
@@ -149,7 +149,7 @@ public class ReaperAbnormalityTracker : AbnormalityTracker
         if (ShadowReapingId != p.AbnormalityId) return;
         if (!TryGetClassViewModel<ReaperLayoutViewModel>(out var vm)) return;
 
-        vm.ShadowReaping.StartEffect(p.Duration);
+        vm.StartSkillEffect(vm.ShadowReaping, p.Duration);
     }
 
     private static void CheckShadowReapingRefresh(S_ABNORMALITY_REFRESH p)
@@ -157,7 +157,7 @@ public class ReaperAbnormalityTracker : AbnormalityTracker
         if (ShadowReapingId != p.AbnormalityId) return;
         if (!TryGetClassViewModel<ReaperLayoutViewModel>(out var vm)) return;
 
-        vm.ShadowReaping.RefreshEffect(p.Duration);
+        vm.RefreshSkillEffect(vm.ShadowReaping, p.Duration);
     }
 
     private static void CheckShadowReapingEnd(S_ABNORMALITY_END p)
@@ -165,6 +165,6 @@ public class ReaperAbnormalityTracker : AbnormalityTracker
         if (ShadowReapingId != p.AbnormalityId) return;
         if (!TryGetClassViewModel<ReaperLayoutViewModel>(out var vm)) return;
 
-        vm.ShadowReaping.StopEffect();
+        vm.StopSkillEffect(vm.ShadowReaping);
     }
 }

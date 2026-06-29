@@ -5,6 +5,7 @@ using System.Windows.Controls;
 using System.Windows.Input;
 using GongSolutions.Wpf.DragDrop;
 using TCC.Data.Skills;
+using TCC.ViewModels;
 using TCC.ViewModels.Widgets;
 
 namespace TCC.UI.Windows;
@@ -73,7 +74,7 @@ public partial class ClassSkillConfigWindow
 
     private void RemoveExtraSkill(object sender, RoutedEventArgs e)
     {
-        VM.RemoveExtraSkill((Cooldown)((Button)sender).DataContext);
+        VM.RemoveExtraSkill((SkillWithEffect)((Button)sender).DataContext);
     }
 }
 
@@ -81,7 +82,7 @@ public class ClassExtraSkillDropHandler : IDropTarget
 {
     public void DragOver(IDropInfo dropInfo)
     {
-        if (dropInfo.Data is Skill or Cooldown)
+        if (dropInfo.Data is Skill or SkillWithEffect)
         {
             dropInfo.Effects = DragDropEffects.Move;
             dropInfo.DropTargetAdorner = DropTargetAdorners.Insert;
@@ -95,8 +96,8 @@ public class ClassExtraSkillDropHandler : IDropTarget
             case Skill skill:
                 WindowManager.ViewModels.ClassVM.AddExtraSkill(skill, dropInfo.InsertIndex);
                 break;
-            case Cooldown cooldown:
-                WindowManager.ViewModels.ClassVM.MoveExtraSkill(cooldown, dropInfo.InsertIndex);
+            case SkillWithEffect skill:
+                WindowManager.ViewModels.ClassVM.MoveExtraSkill(skill, dropInfo.InsertIndex);
                 break;
         }
     }

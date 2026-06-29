@@ -131,13 +131,13 @@ internal class MysticLayoutViewModel : BaseClassLayoutViewModel
 
     private void OnVocRefreshed(ulong duration)
     {
-        VolleyOfCurse.RefreshEffect(duration);
+        RefreshSkillEffect(VolleyOfCurse, duration);
         VolleyOfCurse.Cooldown.FlashOnAvailable = false;
     }
 
     private void OnVocExpired()
     {
-        VolleyOfCurse.StopEffect();
+        StopSkillEffect(VolleyOfCurse);
         VolleyOfCurse.Cooldown.FlashOnAvailable = true;
     }
 

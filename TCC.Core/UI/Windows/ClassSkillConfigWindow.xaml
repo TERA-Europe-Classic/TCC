@@ -4,6 +4,7 @@
                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
                    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
                    xmlns:skillData="clr-namespace:TCC.Data.Skills"
+                   xmlns:viewModels="clr-namespace:TCC.ViewModels"
                    xmlns:windows="clr-namespace:TCC.UI.Windows"
                    xmlns:widgets="clr-namespace:TCC.ViewModels.Widgets"
                    xmlns:dd="urn:gong-wpf-dragdrop"
@@ -27,7 +28,17 @@
                 </Ellipse.Fill>
             </Ellipse>
         </DataTemplate>
-        <DataTemplate x:Key="ClassExtraSkillDataTemplate" DataType="skillData:Cooldown">
+        <DataTemplate x:Key="ClassExtraSkillDragAdornerTemplate" DataType="viewModels:SkillWithEffect">
+            <Ellipse Width="32" Height="{Binding ElementName=icon, Path=ActualWidth}" x:Name="icon"
+                     Stroke="#7fff"
+                     StrokeThickness="1" HorizontalAlignment="Center" VerticalAlignment="Center">
+                <Ellipse.Fill>
+                    <ImageBrush
+                        ImageSource="{Binding Cooldown.Skill.IconName, Converter={StaticResource IconNameToPath}}" />
+                </Ellipse.Fill>
+            </Ellipse>
+        </DataTemplate>
+        <DataTemplate x:Key="ClassExtraSkillDataTemplate" DataType="viewModels:SkillWithEffect">
             <Grid>
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="Auto" />
@@ -39,10 +50,10 @@
                          StrokeThickness="1" HorizontalAlignment="Center" VerticalAlignment="Center">
                     <Ellipse.Fill>
                         <ImageBrush
-                            ImageSource="{Binding Skill.IconName, Converter={StaticResource IconNameToPath}}" />
+                            ImageSource="{Binding Cooldown.Skill.IconName, Converter={StaticResource IconNameToPath}}" />
                     </Ellipse.Fill>
                 </Ellipse>
-                <TextBlock Grid.Column="1" Foreground="#9fff" Text="{Binding Skill.ShortName}"
+                <TextBlock Grid.Column="1" Foreground="#9fff" Text="{Binding Cooldown.Skill.ShortName}"
                            VerticalAlignment="Center" Margin="5 0" />
                 <Button Style="{StaticResource NostrumContentOpacityButtonStyle}" VerticalAlignment="Center"
                         Click="RemoveExtraSkill" Grid.Column="2">
@@ -126,7 +137,7 @@
                          dd:DragDrop.IsDragSource="True"
                          dd:DragDrop.IsDropTarget="True"
                          dd:DragDrop.DropHandler="{Binding ExtraSkillDropHandler, RelativeSource={RelativeSource AncestorType=windows:ClassSkillConfigWindow}}"
-                         dd:DragDrop.DragAdornerTemplate="{StaticResource DragAdornerTemplate}"
+                         dd:DragDrop.DragAdornerTemplate="{StaticResource ClassExtraSkillDragAdornerTemplate}"
                          ItemTemplate="{StaticResource ClassExtraSkillDataTemplate}" />
             </Grid>
         </Grid>

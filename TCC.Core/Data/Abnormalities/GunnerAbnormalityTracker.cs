@@ -58,7 +58,7 @@ public class GunnerAbnormalityTracker : AbnormalityTracker
         if (!LaserTargetingIDs.Contains(p.AbnormalityId)) return;
         if (!TryGetClassViewModel<GunnerLayoutViewModel>(out var vm)) return;
 
-        vm.ModularSystem.StartEffect(p.Duration);
+        vm.StartSkillEffect(vm.ModularSystem, p.Duration);
     }
 
     private static void CheckLaserTargetingRefresh(S_ABNORMALITY_REFRESH p)
@@ -66,7 +66,7 @@ public class GunnerAbnormalityTracker : AbnormalityTracker
         if (!LaserTargetingIDs.Contains(p.AbnormalityId)) return;
         if (!TryGetClassViewModel<GunnerLayoutViewModel>(out var vm)) return;
 
-        vm.ModularSystem.RefreshEffect(p.Duration);
+        vm.RefreshSkillEffect(vm.ModularSystem, p.Duration);
     }
 
     private static void CheckLaserTargetingEnd(S_ABNORMALITY_END p)
@@ -74,6 +74,6 @@ public class GunnerAbnormalityTracker : AbnormalityTracker
         if (!LaserTargetingIDs.Contains(p.AbnormalityId)) return;
         if (!TryGetClassViewModel<GunnerLayoutViewModel>(out var vm)) return;
 
-        vm.ModularSystem.StopEffect();
+        vm.StopSkillEffect(vm.ModularSystem);
     }
 }

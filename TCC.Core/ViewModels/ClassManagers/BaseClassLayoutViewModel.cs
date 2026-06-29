@@ -5,20 +5,21 @@ using Nostrum.WPF.ThreadSafe;
 using TCC.Data;
 using TCC.Data.Skills;
 using TCC.Settings;
+using TCC.ViewModels;
 using TeraDataLite;
 
 namespace TCC.ViewModels.ClassManagers;
 
 public abstract class BaseClassLayoutViewModel : ThreadSafeObservableObject, IDisposable
 {
-    public ThreadSafeObservableCollection<Cooldown> ExtraSkills { get; }
+    public ThreadSafeObservableCollection<SkillWithEffect> ExtraSkills { get; }
     protected virtual IReadOnlyList<uint> DefaultClassSkillIds => [];
     protected virtual int ClassSkillCapacity => DefaultClassSkillIds.Count;
     public bool HasConfigurableSkillSlots => ClassSkillCapacity > 0;
 
     protected BaseClassLayoutViewModel()
     {
-        ExtraSkills = new ThreadSafeObservableCollection<Cooldown>(_dispatcher);
+        ExtraSkills = new ThreadSafeObservableCollection<SkillWithEffect>(_dispatcher);
     }
 
     public bool StartSpecialSkill(Cooldown cd)
@@ -65,26 +66,26 @@ public abstract class BaseClassLayoutViewModel : ThreadSafeObservableObject, IDi
     {
         if (skill.Id == 0 || skill.Class is Class.None) return false;
         if (ClassSkillCapacity == 0 || ExtraSkills.Count >= ClassSkillCapacity) return false;
-        if (ExtraSkills.ToSyncList().Any(x => x.Skill.IconName == skill.IconName)) return false;
+        if (ExtraSkills.ToSyncList().Any(x => IsSameSkill(x.Cooldown.Skill, skill))) return false;
 
-        var cooldown = new Cooldown(skill, false, CooldownType.Skill, _dispatcher);
-        ConfigureExtraSkill(cooldown);
+        var classSkill = new SkillWithEffect(_dispatcher, skill);
+        ConfigureExtraSkill(classSkill.Cooldown);
         if (index < 0 || index > ExtraSkills.Count)
         {
-            ExtraSkills.Add(cooldown);
+            ExtraSkills.Add(classSkill);
         }
         else
         {
-            ExtraSkills.Insert(index, cooldown);
+            ExtraSkills.Insert(index, classSkill);
         }
 
         if (save) SaveExtraSkills(c);
         return true;
     }
 
-    public bool RemoveExtraSkill(Cooldown cooldown, Class c)
+    public bool RemoveExtraSkill(SkillWithEffect skill, Class c)
     {
-        var target = ExtraSkills.ToSyncList().FirstOrDefault(x => x.Skill.IconName == cooldown.Skill.IconName);
+        var target = ExtraSkills.ToSyncList().FirstOrDefault(x => IsSameSkill(x.Cooldown.Skill, skill.Cooldown.Skill));
         if (target == null) return false;
 
         ExtraSkills.Remove(target);
@@ -93,9 +94,9 @@ public abstract class BaseClassLayoutViewModel : ThreadSafeObservableObject, IDi
         return true;
     }
 
-    public bool MoveExtraSkill(Cooldown cooldown, int insertIndex, Class c)
+    public bool MoveExtraSkill(SkillWithEffect skill, int insertIndex, Class c)
     {
-        var target = ExtraSkills.ToSyncList().FirstOrDefault(x => x.Skill.IconName == cooldown.Skill.IconName);
+        var target = ExtraSkills.ToSyncList().FirstOrDefault(x => IsSameSkill(x.Cooldown.Skill, skill.Cooldown.Skill));
         if (target == null) return false;
 
         var currentIndex = ExtraSkills.IndexOf(target);
@@ -113,19 +114,19 @@ public abstract class BaseClassLayoutViewModel : ThreadSafeObservableObject, IDi
 
     public bool ChangeExtraSkill(Skill skill, uint cd)
     {
-        var existing = ExtraSkills.ToSyncList().FirstOrDefault(x => x.Skill.IconName == skill.IconName);
+        var existing = ExtraSkills.ToSyncList().FirstOrDefault(x => IsSameSkill(x.Cooldown.Skill, skill));
         if (existing == null) return false;
 
-        existing.Refresh(skill.Id, cd, CooldownMode.Normal);
+        existing.Cooldown.Refresh(skill.Id, cd, CooldownMode.Normal);
         return true;
     }
 
     public bool ResetExtraSkill(Skill skill)
     {
-        var existing = ExtraSkills.ToSyncList().FirstOrDefault(x => x.Skill.IconName == skill.IconName);
+        var existing = ExtraSkills.ToSyncList().FirstOrDefault(x => IsSameSkill(x.Cooldown.Skill, skill));
         if (existing == null) return false;
 
-        existing.ProcReset();
+        existing.Cooldown.ProcReset();
         return true;
     }
 
@@ -134,9 +135,9 @@ public abstract class BaseClassLayoutViewModel : ThreadSafeObservableObject, IDi
         if (c is Class.None) return;
 
         var data = new ClassWindowConfigData();
-        foreach (var cooldown in ExtraSkills.ToSyncList())
+        foreach (var skill in ExtraSkills.ToSyncList())
         {
-            data.SkillIds.Add(cooldown.Skill.Id);
+            data.SkillIds.Add(skill.Cooldown.Skill.Id);
         }
 
         ClassWindowConfigParser.Save(c, data);
@@ -144,9 +145,9 @@ public abstract class BaseClassLayoutViewModel : ThreadSafeObservableObject, IDi
 
     public void ClearExtraSkills()
     {
-        foreach (var cooldown in ExtraSkills.ToSyncList())
+        foreach (var skill in ExtraSkills.ToSyncList())
         {
-            cooldown.Dispose();
+            skill.Dispose();
         }
 
         ExtraSkills.Clear();
@@ -156,13 +157,77 @@ public abstract class BaseClassLayoutViewModel : ThreadSafeObservableObject, IDi
     {
     }
 
+    public void StartSkillEffect(SkillWithEffect skill, ulong duration)
+    {
+        skill.StartEffect(duration);
+        StartConfiguredSkillEffect(skill.Cooldown.Skill, duration);
+    }
+
+    public void RefreshSkillEffect(SkillWithEffect skill, ulong duration)
+    {
+        skill.RefreshEffect(duration);
+        RefreshConfiguredSkillEffect(skill.Cooldown.Skill, duration);
+    }
+
+    public void StopSkillEffect(SkillWithEffect skill)
+    {
+        skill.StopEffect();
+        StopConfiguredSkillEffect(skill.Cooldown.Skill);
+    }
+
+    protected void StartConfiguredSkillEffect(uint skillId, ulong duration)
+    {
+        FindConfiguredSkill(skillId)?.StartEffect(duration);
+    }
+
+    protected void RefreshConfiguredSkillEffect(uint skillId, ulong duration)
+    {
+        FindConfiguredSkill(skillId)?.RefreshEffect(duration);
+    }
+
+    protected void StopConfiguredSkillEffect(uint skillId)
+    {
+        FindConfiguredSkill(skillId)?.StopEffect();
+    }
+
     private bool StartExtraSkill(Cooldown cd)
     {
-        var existing = ExtraSkills.ToSyncList().FirstOrDefault(x => x.Skill.IconName == cd.Skill.IconName);
+        var existing = ExtraSkills.ToSyncList().FirstOrDefault(x => IsSameSkill(x.Cooldown.Skill, cd.Skill));
         if (existing == null) return false;
 
-        existing.Start(cd.Duration, cd.Mode);
+        existing.Cooldown.Start(cd.Duration, cd.Mode);
         return true;
+    }
+
+    private void StartConfiguredSkillEffect(Skill skill, ulong duration)
+    {
+        FindConfiguredSkill(skill)?.StartEffect(duration);
+    }
+
+    private void RefreshConfiguredSkillEffect(Skill skill, ulong duration)
+    {
+        FindConfiguredSkill(skill)?.RefreshEffect(duration);
+    }
+
+    private void StopConfiguredSkillEffect(Skill skill)
+    {
+        FindConfiguredSkill(skill)?.StopEffect();
+    }
+
+    private SkillWithEffect? FindConfiguredSkill(uint skillId)
+    {
+        return ExtraSkills.ToSyncList().FirstOrDefault(skill => skill.Cooldown.Skill.Id == skillId);
+    }
+
+    private SkillWithEffect? FindConfiguredSkill(Skill skill)
+    {
+        return ExtraSkills.ToSyncList().FirstOrDefault(extraSkill => IsSameSkill(extraSkill.Cooldown.Skill, skill));
+    }
+
+    private static bool IsSameSkill(Skill left, Skill right)
+    {
+        if (left.Id != 0 && right.Id != 0 && left.Id == right.Id) return true;
+        return !string.IsNullOrWhiteSpace(left.IconName) && left.IconName == right.IconName;
     }
 
     public StatTracker StaminaTracker { get; set; } = new();

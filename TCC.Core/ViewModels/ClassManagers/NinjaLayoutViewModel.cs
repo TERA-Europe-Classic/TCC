@@ -3,6 +3,7 @@ using System.ComponentModel;
 using System.Linq;
 using TCC.Data;
 using TCC.Data.Skills;
+using TCC.ViewModels;
 
 namespace TCC.ViewModels.ClassManagers;
 
@@ -45,30 +46,25 @@ public class NinjaLayoutViewModel : BaseClassLayoutViewModel
 
     public void StartInnerHarmonyEffect(ulong duration)
     {
-        FindConfiguredSkill(InnerHarmonySkillId)?.Start(duration);
+        StartConfiguredSkillEffect(InnerHarmonySkillId, duration);
     }
 
     public void RefreshInnerHarmonyEffect(ulong duration)
     {
-        FindConfiguredSkill(InnerHarmonySkillId)?.Refresh(duration, CooldownMode.Normal);
+        RefreshConfiguredSkillEffect(InnerHarmonySkillId, duration);
     }
 
     public void StopInnerHarmonyEffect()
     {
-        FindConfiguredSkill(InnerHarmonySkillId)?.Stop();
+        StopConfiguredSkillEffect(InnerHarmonySkillId);
     }
 
     private void FlashOnMaxSt(object? sender, PropertyChangedEventArgs e)
     {
         if (e.PropertyName != nameof(StaminaTracker.Maxed)) return;
-        foreach (var cooldown in ExtraSkills.ToSyncList())
+        foreach (var skill in ExtraSkills.ToSyncList())
         {
-            cooldown.FlashOnAvailable = StaminaTracker.Maxed;
+            skill.Cooldown.FlashOnAvailable = StaminaTracker.Maxed;
         }
-    }
-
-    private Cooldown? FindConfiguredSkill(uint skillId)
-    {
-        return ExtraSkills.ToSyncList().FirstOrDefault(cooldown => cooldown.Skill.Id == skillId);
     }
 }

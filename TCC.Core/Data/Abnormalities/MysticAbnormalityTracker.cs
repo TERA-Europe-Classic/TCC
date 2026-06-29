@@ -74,7 +74,7 @@ public class MysticAbnormalityTracker : AbnormalityTracker
         }
         else if (p.AbnormalityId == VowOfRebirthId)
         {
-            vm.Vow.StartEffect(p.Duration);
+            vm.StartSkillEffect(vm.Vow, p.Duration);
         }
         else if (ElementalizeIDs.Contains(p.AbnormalityId))
         {
@@ -82,11 +82,11 @@ public class MysticAbnormalityTracker : AbnormalityTracker
         }
         else if (p.AbnormalityId == ThrallOfVengeanceId)
         {
-            vm.ThrallOfVengeance.StartEffect(p.Duration);
+            vm.StartSkillEffect(vm.ThrallOfVengeance, p.Duration);
         }
         else if (p.AbnormalityId == ThrallOfWrathId)
         {
-            vm.ThrallOfWrath.StartEffect(p.Duration);
+            vm.StartSkillEffect(vm.ThrallOfWrath, p.Duration);
         }
     }
 
@@ -112,15 +112,15 @@ public class MysticAbnormalityTracker : AbnormalityTracker
         }
         else if (p.AbnormalityId == VowOfRebirthId)
         {
-            vm.Vow.RefreshEffect(p.Duration);
+            vm.RefreshSkillEffect(vm.Vow, p.Duration);
         }
         else if (p.AbnormalityId == ThrallOfVengeanceId)
         {
-            vm.ThrallOfVengeance.RefreshEffect(p.Duration);
+            vm.RefreshSkillEffect(vm.ThrallOfVengeance, p.Duration);
         }
         else if (p.AbnormalityId == ThrallOfWrathId)
         {
-            vm.ThrallOfWrath.RefreshEffect(p.Duration);
+            vm.RefreshSkillEffect(vm.ThrallOfWrath, p.Duration);
         }
         else if (ElementalizeIDs.Contains(p.AbnormalityId))
         {
@@ -150,15 +150,15 @@ public class MysticAbnormalityTracker : AbnormalityTracker
         }
         else if (p.AbnormalityId == VowOfRebirthId)
         {
-            vm.Vow.StopEffect();
+            vm.StopSkillEffect(vm.Vow);
         }
         else if (p.AbnormalityId == ThrallOfVengeanceId)
         {
-            vm.ThrallOfVengeance.StopEffect();
+            vm.StopSkillEffect(vm.ThrallOfVengeance);
         }
         else if (p.AbnormalityId == ThrallOfWrathId)
         {
-            vm.ThrallOfWrath.StopEffect();
+            vm.StopSkillEffect(vm.ThrallOfWrath);
         }
         else if (ElementalizeIDs.Contains(p.AbnormalityId))
         {

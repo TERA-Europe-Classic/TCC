@@ -34,7 +34,7 @@ public class SlayerAbnormalityTracker : AbnormalityTracker
         if (!IcbIds.Contains(p.AbnormalityId)) return;
         if (!TryGetClassViewModel<SlayerLayoutViewModel>(out var vm)) return;
 
-        vm.InColdBlood.StartEffect(p.Duration);
+        vm.StartSkillEffect(vm.InColdBlood, p.Duration);
     }
 
     private static void CheckInColdBloodRefresh(S_ABNORMALITY_REFRESH p)
@@ -42,7 +42,7 @@ public class SlayerAbnormalityTracker : AbnormalityTracker
         if (!IcbIds.Contains(p.AbnormalityId)) return;
         if (!TryGetClassViewModel<SlayerLayoutViewModel>(out var vm)) return;
 
-        vm.InColdBlood.StartEffect(p.Duration);
+        vm.RefreshSkillEffect(vm.InColdBlood, p.Duration);
     }
 
     private static void CheckInColdBloodEnd(S_ABNORMALITY_END p)
@@ -50,6 +50,6 @@ public class SlayerAbnormalityTracker : AbnormalityTracker
         if (!IcbIds.Contains(p.AbnormalityId)) return;
         if (!TryGetClassViewModel<SlayerLayoutViewModel>(out var vm)) return;
 
-        vm.InColdBlood.StopEffect();
+        vm.StopSkillEffect(vm.InColdBlood);
     }
 }

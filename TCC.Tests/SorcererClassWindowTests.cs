@@ -51,13 +51,13 @@ public class SorcererClassWindowTests
         Assert.Contains("CheckBurstOfCelerityBegin(p)", source);
         Assert.Contains("CheckBurstOfCelerityRefresh(p)", source);
         Assert.Contains("CheckBurstOfCelerityEnd(p)", source);
-        Assert.Contains("vm.BurstOfCelerity.StartEffect(p.Duration)", source);
-        Assert.Contains("vm.BurstOfCelerity.RefreshEffect(p.Duration)", source);
-        Assert.Contains("vm.BurstOfCelerity.StopEffect()", source);
+        Assert.Contains("vm.StartSkillEffect(vm.BurstOfCelerity, p.Duration)", source);
+        Assert.Contains("vm.RefreshSkillEffect(vm.BurstOfCelerity, p.Duration)", source);
+        Assert.Contains("vm.StopSkillEffect(vm.BurstOfCelerity)", source);
     }
 
     [Fact]
-    public void LayoutPreservesBurstOfCelerityEffectDurationInConfigurableSlot()
+    public void LayoutUsesGenericEffectTilesForConfigurableSlots()
     {
         var layout = XDocument.Load(Path.Combine(
             FindRepoRoot().FullName,
@@ -67,20 +67,20 @@ public class SorcererClassWindowTests
             "Classes",
             "SorcererLayout.xaml"));
 
-        var burstTile = layout
+        var configuredSlots = layout
             .Descendants()
             .SingleOrDefault(element =>
-                element.Name.LocalName == "RhombSkillEffectControl"
-                && (string?)element.Attribute("DataContext") == "{Binding DataContext.BurstOfCelerity, RelativeSource={RelativeSource AncestorType=UserControl}}");
+                element.Name.LocalName == "ItemsControl"
+                && (string?)element.Attribute("ItemsSource") == "{Binding ExtraSkills}");
 
-        Assert.NotNull(burstTile);
+        Assert.NotNull(configuredSlots);
 
         Assert.Contains(
-            layout.Descendants(),
-            element =>
-                element.Name.LocalName == "DataTrigger"
-                && (string?)element.Attribute("Binding") == "{Binding Skill.Id}"
-                && (string?)element.Attribute("Value") == "240100");
+            configuredSlots!.Descendants(),
+            element => element.Name.LocalName == "RhombSkillEffectControl");
+        Assert.DoesNotContain(
+            configuredSlots.Descendants(),
+            element => element.Name.LocalName == "DataTrigger");
     }
 
     private static DirectoryInfo FindRepoRoot()

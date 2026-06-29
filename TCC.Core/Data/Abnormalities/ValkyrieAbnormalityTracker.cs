@@ -61,7 +61,7 @@ public class ValkyrieAbnormalityTracker : AbnormalityTracker
         if (p.AbnormalityId != RagnarokId) return;
         if (!TryGetClassViewModel<ValkyrieLayoutViewModel>(out var vm)) return;
 
-        vm.Ragnarok.StartEffect(p.Duration);
+        vm.StartSkillEffect(vm.Ragnarok, p.Duration);
     }
 
     private static void CheckRagnarokEnd(S_ABNORMALITY_END p)
@@ -69,7 +69,7 @@ public class ValkyrieAbnormalityTracker : AbnormalityTracker
         if (p.AbnormalityId != RagnarokId) return;
         if (!TryGetClassViewModel<ValkyrieLayoutViewModel>(out var vm)) return;
 
-        vm.Ragnarok.StopEffect();
+        vm.StopSkillEffect(vm.Ragnarok);
     }
 
     private static void CheckRagnarokRefresh(S_ABNORMALITY_REFRESH p)
@@ -77,7 +77,7 @@ public class ValkyrieAbnormalityTracker : AbnormalityTracker
         if (p.AbnormalityId != RagnarokId) return;
         if (!TryGetClassViewModel<ValkyrieLayoutViewModel>(out var vm)) return;
 
-        vm.Ragnarok.RefreshEffect(p.Duration);
+        vm.RefreshSkillEffect(vm.Ragnarok, p.Duration);
     }
 
     private static void CheckGodsfallBegin(S_ABNORMALITY_BEGIN p)
@@ -85,7 +85,7 @@ public class ValkyrieAbnormalityTracker : AbnormalityTracker
         if (p.AbnormalityId != GodsfallId) return;
         if (!TryGetClassViewModel<ValkyrieLayoutViewModel>(out var vm)) return;
 
-        vm.Godsfall.StartEffect(p.Duration);
+        vm.StartSkillEffect(vm.Godsfall, p.Duration);
     }
 
     private static void CheckGodsfallRefresh(S_ABNORMALITY_REFRESH p)
@@ -93,7 +93,7 @@ public class ValkyrieAbnormalityTracker : AbnormalityTracker
         if (p.AbnormalityId != GodsfallId) return;
         if (!TryGetClassViewModel<ValkyrieLayoutViewModel>(out var vm)) return;
 
-        vm.Godsfall.RefreshEffect(p.Duration);
+        vm.RefreshSkillEffect(vm.Godsfall, p.Duration);
     }
 
     private static void CheckGodsfallEnd(S_ABNORMALITY_END p)
@@ -101,7 +101,7 @@ public class ValkyrieAbnormalityTracker : AbnormalityTracker
         if (p.AbnormalityId != GodsfallId) return;
         if (!TryGetClassViewModel<ValkyrieLayoutViewModel>(out var vm)) return;
 
-        vm.Godsfall.StopEffect();
+        vm.StopSkillEffect(vm.Godsfall);
     }
 
     private void CheckTwilightWaltzBegin(S_ABNORMALITY_BEGIN p)

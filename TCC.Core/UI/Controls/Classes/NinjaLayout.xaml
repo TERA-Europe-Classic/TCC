@@ -120,7 +120,7 @@
                                     <RotateTransform Angle="45" />
                                 </FrameworkElement.RenderTransform>
                             </Border>
-                            <skills:RhombFixedSkillControl />
+                            <skills:RhombSkillEffectControl />
                         </Grid>
                     </DataTemplate>
                 </ItemsControl.ItemTemplate>

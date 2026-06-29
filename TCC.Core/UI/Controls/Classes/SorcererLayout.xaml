@@ -74,24 +74,8 @@
                                     <RotateTransform Angle="45" />
                                 </FrameworkElement.RenderTransform>
                             </Border>
-                            <skills:RhombFixedSkillControl x:Name="FixedSkillControl" />
-                            <skills:RhombSkillEffectControl x:Name="ManaBoostSkillControl"
-                                                            DataContext="{Binding DataContext.ManaBoost, RelativeSource={RelativeSource AncestorType=UserControl}}"
-                                                            Visibility="Collapsed" />
-                            <skills:RhombSkillEffectControl x:Name="BurstOfCeleritySkillControl"
-                                                            DataContext="{Binding DataContext.BurstOfCelerity, RelativeSource={RelativeSource AncestorType=UserControl}}"
-                                                            Visibility="Collapsed" />
+                            <skills:RhombSkillEffectControl />
                         </Grid>
-                        <DataTemplate.Triggers>
-                            <DataTrigger Binding="{Binding Skill.Id}" Value="340200">
-                                <Setter TargetName="FixedSkillControl" Property="Visibility" Value="Collapsed" />
-                                <Setter TargetName="ManaBoostSkillControl" Property="Visibility" Value="Visible" />
-                            </DataTrigger>
-                            <DataTrigger Binding="{Binding Skill.Id}" Value="240100">
-                                <Setter TargetName="FixedSkillControl" Property="Visibility" Value="Collapsed" />
-                                <Setter TargetName="BurstOfCeleritySkillControl" Property="Visibility" Value="Visible" />
-                            </DataTrigger>
-                        </DataTemplate.Triggers>
                     </DataTemplate>
                 </ItemsControl.ItemTemplate>
             </ItemsControl>

@@ -65,7 +65,7 @@ public class SorcererAbnormalityTracker : AbnormalityTracker
         if (!ManaBoostIds.Contains(p.AbnormalityId)) return;
         if (!TryGetClassViewModel<SorcererLayoutViewModel>(out var vm)) return;
 
-        vm.ManaBoost.StartEffect(p.Duration);
+        vm.StartSkillEffect(vm.ManaBoost, p.Duration);
     }
 
     private static void CheckManaBoostRefresh(S_ABNORMALITY_REFRESH p)
@@ -73,7 +73,7 @@ public class SorcererAbnormalityTracker : AbnormalityTracker
         if (!ManaBoostIds.Contains(p.AbnormalityId)) return;
         if (!TryGetClassViewModel<SorcererLayoutViewModel>(out var vm)) return;
 
-        vm.ManaBoost.RefreshEffect(p.Duration);
+        vm.RefreshSkillEffect(vm.ManaBoost, p.Duration);
     }
 
     private static void CheckManaBoostEnd(S_ABNORMALITY_END p)
@@ -81,7 +81,7 @@ public class SorcererAbnormalityTracker : AbnormalityTracker
         if (!ManaBoostIds.Contains(p.AbnormalityId)) return;
         if (!TryGetClassViewModel<SorcererLayoutViewModel>(out var vm)) return;
 
-        vm.ManaBoost.StopEffect();
+        vm.StopSkillEffect(vm.ManaBoost);
     }
 
     private static void CheckBurstOfCelerityBegin(S_ABNORMALITY_BEGIN p)
@@ -89,7 +89,7 @@ public class SorcererAbnormalityTracker : AbnormalityTracker
         if (p.AbnormalityId != BurstOfCelerityId) return;
         if (!TryGetClassViewModel<SorcererLayoutViewModel>(out var vm)) return;
 
-        vm.BurstOfCelerity.StartEffect(p.Duration);
+        vm.StartSkillEffect(vm.BurstOfCelerity, p.Duration);
     }
 
     private static void CheckBurstOfCelerityRefresh(S_ABNORMALITY_REFRESH p)
@@ -97,7 +97,7 @@ public class SorcererAbnormalityTracker : AbnormalityTracker
         if (p.AbnormalityId != BurstOfCelerityId) return;
         if (!TryGetClassViewModel<SorcererLayoutViewModel>(out var vm)) return;
 
-        vm.BurstOfCelerity.RefreshEffect(p.Duration);
+        vm.RefreshSkillEffect(vm.BurstOfCelerity, p.Duration);
     }
 
     private static void CheckBurstOfCelerityEnd(S_ABNORMALITY_END p)
@@ -105,7 +105,7 @@ public class SorcererAbnormalityTracker : AbnormalityTracker
         if (p.AbnormalityId != BurstOfCelerityId) return;
         if (!TryGetClassViewModel<SorcererLayoutViewModel>(out var vm)) return;
 
-        vm.BurstOfCelerity.StopEffect();
+        vm.StopSkillEffect(vm.BurstOfCelerity);
     }
 
     private static void CheckFusionBoostBegin(S_ABNORMALITY_BEGIN p)

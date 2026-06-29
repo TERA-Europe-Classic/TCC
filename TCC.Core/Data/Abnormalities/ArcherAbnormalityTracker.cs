@@ -48,7 +48,7 @@ public class ArcherAbnormalityTracker : AbnormalityTracker
         if (!WindsongIds.Contains(p.AbnormalityId)) return;
         if (!TryGetClassViewModel<ArcherLayoutViewModel>(out var vm)) return;
 
-        vm.Windsong.StartEffect(p.Duration);
+        vm.StartSkillEffect(vm.Windsong, p.Duration);
     }
 
     private static void CheckWindsongRefresh(S_ABNORMALITY_REFRESH p)
@@ -56,7 +56,7 @@ public class ArcherAbnormalityTracker : AbnormalityTracker
         if (!WindsongIds.Contains(p.AbnormalityId)) return;
         if (!TryGetClassViewModel<ArcherLayoutViewModel>(out var vm)) return;
 
-        vm.Windsong.RefreshEffect(p.Duration);
+        vm.RefreshSkillEffect(vm.Windsong, p.Duration);
     }
 
     private static void CheckWindsongEnd(S_ABNORMALITY_END p)
@@ -65,7 +65,7 @@ public class ArcherAbnormalityTracker : AbnormalityTracker
         //if (!CheckByIconName(p.AbnormalityId, WindsongIconName)) return; //TODO: temporary
         if (!TryGetClassViewModel<ArcherLayoutViewModel>(out var vm)) return;
 
-        vm.Windsong.StopEffect();
+        vm.StopSkillEffect(vm.Windsong);
     }
 
     private static void CheckGaleStepsBegin(S_ABNORMALITY_BEGIN p)

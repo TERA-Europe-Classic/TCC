@@ -122,7 +122,7 @@ public class ClassWindowExtraSkillsTests
         Assert.NotNull(configurableSlots);
         Assert.Contains(
             configurableSlots!.Descendants(),
-            element => element.Name.LocalName == "RhombFixedSkillControl");
+            element => element.Name.LocalName == "RhombSkillEffectControl");
 
         var classSkillSlotBorders = layout
             .Descendants()
@@ -181,17 +181,10 @@ public class ClassWindowExtraSkillsTests
         Assert.NotNull(configurableSlots);
         Assert.Contains(
             configurableSlots!.Descendants(),
-            element => element.Name.LocalName == "RhombFixedSkillControl");
-        Assert.Contains(
+            element => element.Name.LocalName == "RhombSkillEffectControl");
+        Assert.DoesNotContain(
             configurableSlots.Descendants(),
-            element =>
-                element.Name.LocalName == "RhombSkillEffectControl"
-                && (string?)element.Attribute("DataContext") == "{Binding DataContext.ManaBoost, RelativeSource={RelativeSource AncestorType=UserControl}}");
-        Assert.Contains(
-            configurableSlots.Descendants(),
-            element =>
-                element.Name.LocalName == "RhombSkillEffectControl"
-                && (string?)element.Attribute("DataContext") == "{Binding DataContext.BurstOfCelerity, RelativeSource={RelativeSource AncestorType=UserControl}}");
+            element => element.Name.LocalName == "DataTrigger");
 
         var fixedBindings = layout
             .Descendants()
@@ -217,6 +210,23 @@ public class ClassWindowExtraSkillsTests
 
         Assert.Contains("DefaultClassSkillIds", source);
         Assert.Contains("[340200, 240100]", source);
+    }
+
+    [Fact]
+    public void ConfigurableClassSkillsUseEffectCapableViewModels()
+    {
+        var source = File.ReadAllText(Path.Combine(
+            FindRepoRoot().FullName,
+            "TCC.Core",
+            "ViewModels",
+            "ClassManagers",
+            "BaseClassLayoutViewModel.cs"));
+
+        Assert.Contains("ThreadSafeObservableCollection<SkillWithEffect> ExtraSkills", source);
+        Assert.Contains("StartSkillEffect(SkillWithEffect skill", source);
+        Assert.Contains("RefreshSkillEffect(SkillWithEffect skill", source);
+        Assert.Contains("StopSkillEffect(SkillWithEffect skill", source);
+        Assert.Contains("StartConfiguredSkillEffect(skill.Cooldown.Skill", source);
     }
 
     [Theory]

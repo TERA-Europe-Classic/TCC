@@ -46,8 +46,8 @@ internal class LancerLayoutViewModel : BaseClassLayoutViewModel
     private void OnDeath()
     {
         LH.Stop();
-        GuardianShout.StopEffect();
-        AdrenalineRush.StopEffect();
+        StopSkillEffect(GuardianShout);
+        StopSkillEffect(AdrenalineRush);
     }
 
     public override void Dispose()

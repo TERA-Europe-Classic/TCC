@@ -21,15 +21,15 @@ public class BerserkerAbnormalityTracker : AbnormalityTracker
         switch (p.AbnormalityId)
         {
             case BloodlustId:
-                vm.Bloodlust.StartEffect(p.Duration);
+                vm.StartSkillEffect(vm.Bloodlust, p.Duration);
                 break;
 
             case FieryRageId:
-                vm.FieryRage.StartEffect(p.Duration);
+                vm.StartSkillEffect(vm.FieryRage, p.Duration);
                 break;
 
             case UnleashId:
-                vm.Unleash.StartEffect(p.Duration);
+                vm.StartSkillEffect(vm.Unleash, p.Duration);
                 vm.IsUnleashOn = true;
                 break;
         }
@@ -45,15 +45,15 @@ public class BerserkerAbnormalityTracker : AbnormalityTracker
         switch (p.AbnormalityId)
         {
             case BloodlustId:
-                vm.Bloodlust.RefreshEffect(p.Duration);
+                vm.RefreshSkillEffect(vm.Bloodlust, p.Duration);
                 break;
 
             case FieryRageId:
-                vm.FieryRage.RefreshEffect(p.Duration);
+                vm.RefreshSkillEffect(vm.FieryRage, p.Duration);
                 break;
 
             case UnleashId:
-                vm.Unleash.RefreshEffect(p.Duration);
+                vm.RefreshSkillEffect(vm.Unleash, p.Duration);
                 vm.IsUnleashOn = true;
                 break;
         }
@@ -69,15 +69,15 @@ public class BerserkerAbnormalityTracker : AbnormalityTracker
         switch (p.AbnormalityId)
         {
             case BloodlustId:
-                vm.Bloodlust.StopEffect();
+                vm.StopSkillEffect(vm.Bloodlust);
                 break;
 
             case FieryRageId:
-                vm.FieryRage.StopEffect();
+                vm.StopSkillEffect(vm.FieryRage);
                 break;
 
             case UnleashId:
-                vm.Unleash.StopEffect();
+                vm.StopSkillEffect(vm.Unleash);
                 vm.IsUnleashOn = false;
                 break;
         }

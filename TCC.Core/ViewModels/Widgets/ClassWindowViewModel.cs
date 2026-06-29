@@ -84,14 +84,14 @@ public class ClassWindowViewModel : TccWindowViewModel
         CurrentManager.AddExtraSkill(skill, CurrentClass, index);
     }
 
-    public void RemoveExtraSkill(Cooldown cooldown)
+    public void RemoveExtraSkill(SkillWithEffect skill)
     {
-        CurrentManager.RemoveExtraSkill(cooldown, CurrentClass);
+        CurrentManager.RemoveExtraSkill(skill, CurrentClass);
     }
 
-    public void MoveExtraSkill(Cooldown cooldown, int insertIndex)
+    public void MoveExtraSkill(SkillWithEffect skill, int insertIndex)
     {
-        CurrentManager.MoveExtraSkill(cooldown, insertIndex, CurrentClass);
+        CurrentManager.MoveExtraSkill(skill, insertIndex, CurrentClass);
     }
 
     public void SaveExtraSkills()

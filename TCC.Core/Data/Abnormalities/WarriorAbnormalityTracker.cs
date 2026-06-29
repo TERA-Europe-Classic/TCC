@@ -148,7 +148,7 @@ public class WarriorAbnormalityTracker : AbnormalityTracker
         //if (!CheckByIconName(p.AbnormalityId, DeadlyGambleIconName)) return; //temporary
         if (!TryGetClassViewModel<WarriorLayoutViewModel>(out var vm)) return;
 
-        vm.DeadlyGamble.StartEffect(p.Duration);
+        vm.StartSkillEffect(vm.DeadlyGamble, p.Duration);
     }
 
     private static void CheckDeadlyGambleRefresh(S_ABNORMALITY_REFRESH p)
@@ -158,7 +158,7 @@ public class WarriorAbnormalityTracker : AbnormalityTracker
         //if (!GambleIDs.Contains(p.AbnormalityId)) return;
         //if (!CheckByIconName(p.AbnormalityId, DeadlyGambleIconName)) return; //temporary
 
-        vm.DeadlyGamble.RefreshEffect(p.Duration);
+        vm.RefreshSkillEffect(vm.DeadlyGamble, p.Duration);
     }
 
     private static void CheckDeadlyGambleEnd(S_ABNORMALITY_END p)
@@ -168,7 +168,7 @@ public class WarriorAbnormalityTracker : AbnormalityTracker
         //if (!GambleIDs.Contains(p.AbnormalityId)) return;
         //if (!CheckByIconName(p.AbnormalityId, DeadlyGambleIconName)) return; //temporary
 
-        vm.DeadlyGamble.StopEffect();
+        vm.StopSkillEffect(vm.DeadlyGamble);
     }
 
     private void CheckBladeWaltzBegin(S_ABNORMALITY_BEGIN p)

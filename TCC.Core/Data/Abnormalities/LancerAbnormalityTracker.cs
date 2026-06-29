@@ -43,7 +43,7 @@ public class LancerAbnormalityTracker : AbnormalityTracker
         if (!CheckByIconName(p.AbnormalityId, AdrenalineRushIconName)) return; //temporary
         if (!TryGetClassViewModel<LancerLayoutViewModel>(out var vm)) return;
 
-        vm.AdrenalineRush.StartEffect(p.Duration);
+        vm.StartSkillEffect(vm.AdrenalineRush, p.Duration);
     }
 
     private static void CheckArushRefresh(S_ABNORMALITY_REFRESH p)
@@ -51,7 +51,7 @@ public class LancerAbnormalityTracker : AbnormalityTracker
         if (!CheckByIconName(p.AbnormalityId, AdrenalineRushIconName)) return; //temporary
         if (!TryGetClassViewModel<LancerLayoutViewModel>(out var vm)) return;
 
-        vm.AdrenalineRush.StartEffect(p.Duration);
+        vm.RefreshSkillEffect(vm.AdrenalineRush, p.Duration);
     }
 
     private static void CheckArushEnd(S_ABNORMALITY_END p)
@@ -59,7 +59,7 @@ public class LancerAbnormalityTracker : AbnormalityTracker
         if (!CheckByIconName(p.AbnormalityId, AdrenalineRushIconName)) return; //temporary
         if (!TryGetClassViewModel<LancerLayoutViewModel>(out var vm)) return;
 
-        vm.AdrenalineRush.StopEffect();
+        vm.StopSkillEffect(vm.AdrenalineRush);
     }
 
     private static void CheckGshoutBegin(S_ABNORMALITY_BEGIN p)
@@ -67,7 +67,7 @@ public class LancerAbnormalityTracker : AbnormalityTracker
         if (!GShoutIDs.Contains(p.AbnormalityId)) return;
         if (!TryGetClassViewModel<LancerLayoutViewModel>(out var vm)) return;
 
-        vm.GuardianShout.StartEffect(p.Duration);
+        vm.StartSkillEffect(vm.GuardianShout, p.Duration);
     }
 
     private static void CheckGshoutRefresh(S_ABNORMALITY_REFRESH p)
@@ -75,7 +75,7 @@ public class LancerAbnormalityTracker : AbnormalityTracker
         if (!GShoutIDs.Contains(p.AbnormalityId)) return;
         if (!TryGetClassViewModel<LancerLayoutViewModel>(out var vm)) return;
 
-        vm.GuardianShout.StartEffect(p.Duration);
+        vm.RefreshSkillEffect(vm.GuardianShout, p.Duration);
     }
 
     private static void CheckGshoutEnd(S_ABNORMALITY_END p)
@@ -83,7 +83,7 @@ public class LancerAbnormalityTracker : AbnormalityTracker
         if (!GShoutIDs.Contains(p.AbnormalityId)) return;
         if (!TryGetClassViewModel<LancerLayoutViewModel>(out var vm)) return;
 
-        vm.GuardianShout.StopEffect();
+        vm.StopSkillEffect(vm.GuardianShout);
     }
 
     private static void CheckLineHeldBegin(S_ABNORMALITY_BEGIN p)

@@ -63,6 +63,8 @@ public partial class RhombSkillEffectControl : INotifyPropertyChanged
     {
         ExternalArc.BeginAnimation(Arc.EndAngleProperty, null);
         ExternalArc.EndAngle = 32;
+        NPC(nameof(DurationLabel));
+        NPC(nameof(ShowEffectSeconds));
     }
 
     private void OnSecondsUpdated()
@@ -75,6 +77,8 @@ public partial class RhombSkillEffectControl : INotifyPropertyChanged
     {
         _anim.Duration = TimeSpan.FromMilliseconds(duration);
         ExternalArc.BeginAnimation(Arc.EndAngleProperty, _anim);
+        NPC(nameof(DurationLabel));
+        NPC(nameof(ShowEffectSeconds));
 
     }
 

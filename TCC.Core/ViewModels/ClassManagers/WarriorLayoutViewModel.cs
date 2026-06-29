@@ -109,11 +109,11 @@ public class WarriorLayoutViewModel : BaseClassLayoutViewModel
     {
         if (duration == 0)
         {
-            Swift.StopEffect();
+            StopSkillEffect(Swift);
         }
         else
         {
-            Swift.StartEffect(duration);
+            StartSkillEffect(Swift, duration);
         }
         InvokePropertyChanged(nameof(AtkSpeedProc));
     }
@@ -122,11 +122,11 @@ public class WarriorLayoutViewModel : BaseClassLayoutViewModel
     {
         if (duration == 0)
         {
-            AdrenalineRush.StopEffect();
+            StopSkillEffect(AdrenalineRush);
         }
         else
         {
-            AdrenalineRush.StartEffect(duration);
+            StartSkillEffect(AdrenalineRush, duration);
         }
         InvokePropertyChanged(nameof(AtkSpeedProc));
     }
@@ -139,6 +139,6 @@ public class WarriorLayoutViewModel : BaseClassLayoutViewModel
 
     private void OnDeath()
     {
-        DeadlyGamble.StopEffect();
+        StopSkillEffect(DeadlyGamble);
     }
 }

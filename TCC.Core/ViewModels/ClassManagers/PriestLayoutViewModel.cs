@@ -47,14 +47,14 @@ public class PriestLayoutViewModel : BaseClassLayoutViewModel
 
     private void OnTripleNemesisRefreshed(ulong duration)
     {
-        TripleNemesis.RefreshEffect(duration);
+        RefreshSkillEffect(TripleNemesis, duration);
         TripleNemesis.Cooldown.FlashOnAvailable = false;
 
     }
 
     private void OnTripleNemesisExpired()
     {
-        TripleNemesis.StopEffect();
+        StopSkillEffect(TripleNemesis);
         TripleNemesis.Cooldown.FlashOnAvailable = true;
 
     }
