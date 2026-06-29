@@ -76,10 +76,10 @@
                             </Border>
                             <skills:RhombFixedSkillControl x:Name="FixedSkillControl" />
                             <skills:RhombSkillEffectControl x:Name="ManaBoostSkillControl"
-                                                            DataContext="{Binding ManaBoost, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                                            DataContext="{Binding DataContext.ManaBoost, RelativeSource={RelativeSource AncestorType=UserControl}}"
                                                             Visibility="Collapsed" />
                             <skills:RhombSkillEffectControl x:Name="BurstOfCeleritySkillControl"
-                                                            DataContext="{Binding BurstOfCelerity, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                                            DataContext="{Binding DataContext.BurstOfCelerity, RelativeSource={RelativeSource AncestorType=UserControl}}"
                                                             Visibility="Collapsed" />
                         </Grid>
                         <DataTemplate.Triggers>

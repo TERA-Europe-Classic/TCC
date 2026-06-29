@@ -186,12 +186,12 @@ public class ClassWindowExtraSkillsTests
             configurableSlots.Descendants(),
             element =>
                 element.Name.LocalName == "RhombSkillEffectControl"
-                && (string?)element.Attribute("DataContext") == "{Binding ManaBoost, RelativeSource={RelativeSource AncestorType=UserControl}}");
+                && (string?)element.Attribute("DataContext") == "{Binding DataContext.ManaBoost, RelativeSource={RelativeSource AncestorType=UserControl}}");
         Assert.Contains(
             configurableSlots.Descendants(),
             element =>
                 element.Name.LocalName == "RhombSkillEffectControl"
-                && (string?)element.Attribute("DataContext") == "{Binding BurstOfCelerity, RelativeSource={RelativeSource AncestorType=UserControl}}");
+                && (string?)element.Attribute("DataContext") == "{Binding DataContext.BurstOfCelerity, RelativeSource={RelativeSource AncestorType=UserControl}}");
 
         var fixedBindings = layout
             .Descendants()
