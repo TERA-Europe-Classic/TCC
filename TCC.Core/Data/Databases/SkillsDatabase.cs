@@ -104,8 +104,7 @@ public class SkillsDatabase : DatabaseBase
             Class.Sorcerer,
             [
                 "icon_skills.fireball_tex",
-                "icon_skills.tornadoprison_tex",
-                "icon_skills.contractofquickness_tex"
+                "icon_skills.tornadoprison_tex"
             ]
         },
         {
