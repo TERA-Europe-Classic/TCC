@@ -28,6 +28,17 @@ public abstract class DatabaseBase
 
     public virtual void CheckVersion(string customAbsPath = "", string customRelPath = "")
     {
+        ResetVersionCheck();
+        CheckVersionFile(customAbsPath, customRelPath);
+    }
+
+    protected void ResetVersionCheck()
+    {
+        _outdatedCount = 0;
+    }
+
+    protected void CheckVersionFile(string customAbsPath = "", string customRelPath = "")
+    {
         if (!Exists)
         {
             Log.F($"{(string.IsNullOrEmpty(customAbsPath) ? FullPath : customAbsPath)} not found. Skipping hash check.");

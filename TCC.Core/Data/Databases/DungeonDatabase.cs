@@ -30,9 +30,10 @@ public class DungeonDatabase : DatabaseBase
 
     public override void CheckVersion(string customAbsPath = "", string customRelPath = "")
     {
-        base.CheckVersion(FullPath, RelativePath);
-        base.CheckVersion(_defaultDefsFullPath, DefaultDefsRelativePath);
-        base.CheckVersion(_imagesFullPath, ImagesRelativePath);
+        ResetVersionCheck();
+        CheckVersionFile(FullPath, RelativePath);
+        CheckVersionFile(_defaultDefsFullPath, DefaultDefsRelativePath);
+        CheckVersionFile(_imagesFullPath, ImagesRelativePath);
     }
 
     public override void Update(string custom = "")
