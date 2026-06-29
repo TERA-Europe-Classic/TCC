@@ -9,6 +9,8 @@ namespace TCC.Settings;
 
 public class JsonSettingsWriter : SettingsWriterBase
 {
+    private static readonly object SaveLock = new();
+
     public JsonSettingsWriter()
     {
         FileName = SettingsGlobals.SettingsFileName;
@@ -23,28 +25,46 @@ public class JsonSettingsWriter : SettingsWriterBase
         var backupPath = SettingsGlobals.GetBackupPath(savePath);
         var previousBackupPath = $"{backupPath}.previous";
 
-        try
+        lock (SaveLock)
         {
-            var directory = Path.GetDirectoryName(savePath);
-            if (!string.IsNullOrEmpty(directory))
+            try
             {
-                Directory.CreateDirectory(directory);
-            }
+                var directory = Path.GetDirectoryName(savePath);
+                if (!string.IsNullOrEmpty(directory))
+                {
+                    Directory.CreateDirectory(directory);
+                }
 
-            File.WriteAllText(tempPath, json);
-            ReplaceSettingsFile(tempPath, savePath, backupPath, previousBackupPath);
+                WriteAllTextDurable(tempPath, json);
+                ReplaceSettingsFile(tempPath, savePath, backupPath, previousBackupPath);
+            }
+            catch (IOException ex)
+            {
+                Log.F($"Failed to save settings to {savePath}: {ex}");
+                var res = TccMessageBox.Show("TCC", SR.CannotSaveSettings(ex.Message), MessageBoxButton.YesNo);
+                if (res == MessageBoxResult.Yes) Save();
+            }
+            finally
+            {
+                TryDelete(tempPath);
+                TryDelete(previousBackupPath);
+            }
         }
-        catch (IOException ex)
-        {
-            Log.F($"Failed to save settings to {savePath}: {ex}");
-            var res = TccMessageBox.Show("TCC", SR.CannotSaveSettings(ex.Message), MessageBoxButton.YesNo);
-            if (res == MessageBoxResult.Yes) Save();
-        }
-        finally
-        {
-            TryDelete(tempPath);
-            TryDelete(previousBackupPath);
-        }
+    }
+
+    private static void WriteAllTextDurable(string path, string text)
+    {
+        using var stream = new FileStream(
+            path,
+            FileMode.Create,
+            FileAccess.Write,
+            FileShare.Read,
+            4096,
+            FileOptions.WriteThrough);
+        using var writer = new StreamWriter(stream);
+        writer.Write(text);
+        writer.Flush();
+        stream.Flush(true);
     }
 
     private static void ReplaceSettingsFile(string tempPath, string savePath, string backupPath, string previousBackupPath)
