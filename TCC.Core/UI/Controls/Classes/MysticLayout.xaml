@@ -10,6 +10,10 @@
              mc:Ignorable="d" d:DataContext="{d:DesignInstance classManagers:MysticLayoutViewModel}">
 
     <Grid Margin="60" ClipToBounds="False">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
         <Grid.Resources>
             <Style TargetType="controls:Arc" x:Key="StanceArc">
                 <Setter Property="Height" Value="91" />
@@ -535,6 +539,7 @@
         </Grid>
 
 
+        <skills:ConfigurableClassSlots Grid.Row="1" Margin="0 12 0 0" />
     </Grid>
 
     <!--<Grid HorizontalAlignment="Center" Width="Auto" IsHitTestVisible="False" Visibility="Collapsed">

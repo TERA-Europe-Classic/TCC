@@ -135,5 +135,6 @@
                 </skills:RhombFixedSkillControl>
             </Grid>
         </Grid>
+        <skills:ConfigurableClassSlots Grid.Row="1" Margin="0 12 0 0" />
     </Grid>
 </UserControl>

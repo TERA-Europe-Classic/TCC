@@ -38,6 +38,10 @@
         </ControlTemplate>
     </UserControl.Resources>
     <Grid Width="Auto" Name="Root" Margin="60 30 60 180" >
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
         <Grid Width="Auto" Height="Auto" HorizontalAlignment="Center">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="Auto"/>
@@ -298,6 +302,7 @@
                 </FrameworkElement.RenderTransform>
             </Grid>
         </Grid>
+        <skills:ConfigurableClassSlots Grid.Row="1" Margin="0 12 0 0" />
     </Grid>
 </UserControl>
                   

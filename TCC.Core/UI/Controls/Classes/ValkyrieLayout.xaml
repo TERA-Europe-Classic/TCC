@@ -12,6 +12,10 @@
              mc:Ignorable="d" Loaded="UserControl_Loaded"
              d:DataContext="{d:DesignInstance classManagers:ValkyrieLayoutViewModel}">
     <Grid Width="Auto" Margin="50 20" Name="Root">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
         <Grid HorizontalAlignment="Center" UseLayoutRounding="True" Margin="0">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="Auto" />
@@ -272,5 +276,6 @@
 
             </Grid>
         </Grid>
+        <skills:ConfigurableClassSlots Grid.Row="1" Margin="0 12 0 0" />
     </Grid>
 </UserControl>

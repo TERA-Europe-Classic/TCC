@@ -1,3 +1,6 @@
 ﻿namespace TCC.ViewModels.ClassManagers;
 
-internal class NullClassLayoutViewModel : BaseClassLayoutViewModel;
+public class NullClassLayoutViewModel : BaseClassLayoutViewModel
+{
+    protected override int ClassSkillCapacity => 0;
+}

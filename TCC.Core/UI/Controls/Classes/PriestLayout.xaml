@@ -112,6 +112,7 @@
 
             </Grid>
         </Grid>
+        <skills:ConfigurableClassSlots Grid.Row="1" Margin="0 12 0 0" />
     </Grid>
     <!--<Grid Margin="5" Name="Root">
         <Grid HorizontalAlignment="Center" Margin="0">

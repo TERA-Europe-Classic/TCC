@@ -35,9 +35,16 @@ public class ClassSkillSlotTransformConverter : IMultiValueConverter
 
     public static Point GetOffset(string? profile, int count, int index)
     {
-        return string.Equals(profile, "Sorcerer", StringComparison.OrdinalIgnoreCase)
-            ? GetSorcererOffset(count, index)
-            : GetOffset(count, index);
+        if (string.Equals(profile, "Sorcerer", StringComparison.OrdinalIgnoreCase))
+            return GetSorcererOffset(count, index);
+        if (string.Equals(profile, "Row", StringComparison.OrdinalIgnoreCase))
+            return GetRowOffset(count, index);
+        return GetOffset(count, index);
+    }
+
+    private static Point GetRowOffset(int count, int index)
+    {
+        return new Point((index - (count - 1) / 2.0) * 46, 0);
     }
 
     private static Point GetSorcererOffset(int count, int index)
@@ -46,7 +53,8 @@ public class ClassSkillSlotTransformConverter : IMultiValueConverter
         {
             <= 1 => new Point(0, 0),
             2 when index == 1 => new Point(42, 0),
-            _ => new Point(-42, 0)
+            2 => new Point(-42, 0),
+            _ => new Point((index - (count - 1) / 2.0) * 42, 0)
         };
     }
 

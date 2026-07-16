@@ -22,7 +22,12 @@ public abstract class BaseClassLayoutViewModel : ThreadSafeObservableObject, IDi
     protected virtual IEnumerable<SkillWithEffect> SpecialEffectSkills => [];
 
     protected virtual IReadOnlyList<uint> DefaultClassSkillIds => [];
-    protected virtual int ClassSkillCapacity => DefaultClassSkillIds.Count;
+
+    /// <summary>
+    /// Classes without curated defaults still get empty configurable slots so
+    /// any skill with an abnormality family can be placed on the class window.
+    /// </summary>
+    protected virtual int ClassSkillCapacity => Math.Max(DefaultClassSkillIds.Count, 3);
     public bool HasConfigurableSkillSlots => ClassSkillCapacity > 0;
 
     protected BaseClassLayoutViewModel()
