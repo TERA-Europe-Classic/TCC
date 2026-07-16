@@ -1,4 +1,5 @@
-﻿using TCC.Data.Skills;
+﻿using System.Collections.Generic;
+using TCC.Data.Skills;
 using TeraDataLite;
 
 namespace TCC.ViewModels.ClassManagers;
@@ -7,6 +8,9 @@ public class SlayerLayoutViewModel : BaseClassLayoutViewModel
 {
 
     public SkillWithEffect InColdBlood { get; }
+
+    protected override IEnumerable<SkillWithEffect> SpecialEffectSkills =>
+        [InColdBlood];
 
     public Cooldown OverhandStrike { get; }
 

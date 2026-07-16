@@ -1,5 +1,6 @@
-﻿using TCC.Data;
+﻿using System.Collections.Generic;
 using TCC.Data.Skills;
+using TCC.Data;
 using TeraDataLite;
 
 namespace TCC.ViewModels.ClassManagers;
@@ -8,6 +9,9 @@ internal class LancerLayoutViewModel : BaseClassLayoutViewModel
 {
     public SkillWithEffect AdrenalineRush { get;  }
     public SkillWithEffect GuardianShout { get; }
+
+    protected override IEnumerable<SkillWithEffect> SpecialEffectSkills =>
+        [AdrenalineRush, GuardianShout];
     public Cooldown Infuriate { get; }
     public LancerLineHeldTracker LH { get; }
     public LancerLayoutViewModel()

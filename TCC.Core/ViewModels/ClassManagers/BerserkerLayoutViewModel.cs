@@ -1,5 +1,6 @@
-﻿using TCC.Data;
+﻿using System.Collections.Generic;
 using TCC.Data.Skills;
+using TCC.Data;
 using TeraDataLite;
 
 namespace TCC.ViewModels.ClassManagers;
@@ -16,6 +17,9 @@ public class BerserkerLayoutViewModel : BaseClassLayoutViewModel
     public SkillWithEffect Sinister { get; set; }
     public SkillWithEffect Rampage { get; set; }
     public SkillWithEffect BeastFury { get; set; }
+
+    protected override IEnumerable<SkillWithEffect> SpecialEffectSkills =>
+        [FieryRage, Bloodlust, Unleash, Dexter, Sinister, Rampage, BeastFury];
 
     public StatTracker DexterSinixterTracker { get; set; }
     public StatTracker RampageTracker { get; set; }

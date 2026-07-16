@@ -1,6 +1,7 @@
-﻿using TCC.Data;
+﻿using System.Collections.Generic;
 using TCC.Data.Abnormalities;
 using TCC.Data.Skills;
+using TCC.Data;
 using TeraDataLite;
 
 namespace TCC.ViewModels.ClassManagers;
@@ -15,6 +16,9 @@ internal class MysticLayoutViewModel : BaseClassLayoutViewModel
     public Cooldown ThrallOfProtection { get; }
     public SkillWithEffect ThrallOfVengeance { get; }
     public SkillWithEffect ThrallOfWrath { get; }
+
+    protected override IEnumerable<SkillWithEffect> SpecialEffectSkills =>
+        [Vow, VolleyOfCurse, ThrallOfVengeance, ThrallOfWrath];
     public Cooldown ThrallOfLife { get; }
 
     public Cooldown AuraMerciless { get; }

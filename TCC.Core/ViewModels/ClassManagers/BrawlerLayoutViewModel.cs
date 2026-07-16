@@ -1,5 +1,6 @@
-﻿using TCC.Data;
+﻿using System.Collections.Generic;
 using TCC.Data.Skills;
+using TCC.Data;
 using TeraDataLite;
 
 namespace TCC.ViewModels.ClassManagers;
@@ -10,6 +11,9 @@ public class BrawlerLayoutViewModel : BaseClassLayoutViewModel
     private bool _counterProc;
 
     public SkillWithEffect GrowingFury { get;  }
+
+    protected override IEnumerable<SkillWithEffect> SpecialEffectSkills =>
+        [GrowingFury];
     public Cooldown Counter { get;  }
     public Cooldown RhythmicBlows { get; }
     public Cooldown Infuriate { get;  }

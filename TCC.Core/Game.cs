@@ -992,12 +992,41 @@ public static class Game
         PacketAnalyzer.Factory.ReloadSysMsg(path);
     }
 
+    /// <summary>
+    /// Routes self-abnormalities to class-window effect tiles by icon-name
+    /// family, so every level of a skill's buff lights up its slot (native
+    /// or user-configured) without per-class abnormality-id tables.
+    /// </summary>
+    private static void RouteClassWindowEffectBegin(Abnormality ab, ulong duration)
+    {
+        if (ab.Infinity) return;
+        CurrentClassWindowManager()?.StartEffectByIconName(ab.IconName, duration);
+    }
+
+    private static void RouteClassWindowEffectRefresh(Abnormality ab, ulong duration)
+    {
+        if (ab.Infinity) return;
+        CurrentClassWindowManager()?.RefreshEffectByIconName(ab.IconName, duration);
+    }
+
+    private static void RouteClassWindowEffectEnd(Abnormality ab)
+    {
+        CurrentClassWindowManager()?.StopEffectByIconName(ab.IconName);
+    }
+
+    private static ViewModels.ClassManagers.BaseClassLayoutViewModel? CurrentClassWindowManager()
+    {
+        // ClassVM is null until the class-window module is initialized.
+        return WindowManager.ViewModels.ClassVM?.CurrentManager;
+    }
+
     private static void OnAbnormalityBegin(S_ABNORMALITY_BEGIN p)
     {
         CurrentAbnormalityTracker.OnAbnormalityBegin(p);
         if (!IsMe(p.TargetId)) return;
         if (!DB!.AbnormalityDatabase.GetAbnormality(p.AbnormalityId, out var ab) || !ab.CanShow) return;
         ab.Infinity = p.Duration >= int.MaxValue / 2;
+        RouteClassWindowEffectBegin(ab, p.Duration);
         Me.UpdateAbnormality(ab, p.Duration, p.Stacks);
         FlyingGuardianDataProvider.OnAbnormalityBegin(p);
 
@@ -1019,6 +1048,7 @@ public static class Game
         if (!IsMe(p.TargetId)) return;
         if (!DB!.AbnormalityDatabase.GetAbnormality(p.AbnormalityId, out var ab) || !ab.CanShow) return;
         ab.Infinity = p.Duration >= int.MaxValue / 2;
+        RouteClassWindowEffectRefresh(ab, p.Duration);
         Me.UpdateAbnormality(ab, p.Duration, p.Stacks);
         FlyingGuardianDataProvider.OnAbnormalityRefresh(p);
     }
@@ -1028,6 +1058,7 @@ public static class Game
         CurrentAbnormalityTracker.OnAbnormalityEnd(p);
         if (!IsMe(p.TargetId)) return;
         if (!DB!.AbnormalityDatabase.GetAbnormality(p.AbnormalityId, out var ab) || !ab.CanShow) return;
+        RouteClassWindowEffectEnd(ab);
         FlyingGuardianDataProvider.OnAbnormalityEnd(p);
         Me.EndAbnormality(ab);
     }

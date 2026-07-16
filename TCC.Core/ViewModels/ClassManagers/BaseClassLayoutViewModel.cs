@@ -13,6 +13,14 @@ namespace TCC.ViewModels.ClassManagers;
 public abstract class BaseClassLayoutViewModel : ThreadSafeObservableObject, IDisposable
 {
     public ThreadSafeObservableCollection<SkillWithEffect> ExtraSkills { get; }
+
+    /// <summary>
+    /// Native class-window tiles backed by a SkillWithEffect (e.g. Lancer's
+    /// Guardian Shout / Adrenaline Rush). Exposed so abnormality events can be
+    /// routed to them by icon-name family, covering every skill/abnormality level.
+    /// </summary>
+    protected virtual IEnumerable<SkillWithEffect> SpecialEffectSkills => [];
+
     protected virtual IReadOnlyList<uint> DefaultClassSkillIds => [];
     protected virtual int ClassSkillCapacity => DefaultClassSkillIds.Count;
     public bool HasConfigurableSkillSlots => ClassSkillCapacity > 0;
@@ -155,6 +163,36 @@ public abstract class BaseClassLayoutViewModel : ThreadSafeObservableObject, IDi
 
     protected virtual void ConfigureExtraSkill(Cooldown cooldown)
     {
+    }
+
+    public bool StartEffectByIconName(string iconName, ulong duration)
+    {
+        return ForEachEffectSkillWithIcon(iconName, skill => skill.StartEffect(duration));
+    }
+
+    public bool RefreshEffectByIconName(string iconName, ulong duration)
+    {
+        return ForEachEffectSkillWithIcon(iconName, skill => skill.RefreshEffect(duration));
+    }
+
+    public bool StopEffectByIconName(string iconName)
+    {
+        return ForEachEffectSkillWithIcon(iconName, skill => skill.StopEffect());
+    }
+
+    private bool ForEachEffectSkillWithIcon(string iconName, Action<SkillWithEffect> action)
+    {
+        if (string.IsNullOrEmpty(iconName)) return false;
+
+        var found = false;
+        foreach (var skill in SpecialEffectSkills.Concat(ExtraSkills.ToSyncList()))
+        {
+            if (skill.Cooldown.Skill.IconName != iconName) continue;
+            action(skill);
+            found = true;
+        }
+
+        return found;
     }
 
     public void StartSkillEffect(SkillWithEffect skill, ulong duration)

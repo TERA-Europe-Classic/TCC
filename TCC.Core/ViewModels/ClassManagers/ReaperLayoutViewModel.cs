@@ -1,4 +1,5 @@
-﻿using TCC.Data.Skills;
+﻿using System.Collections.Generic;
+using TCC.Data.Skills;
 using TeraDataLite;
 
 namespace TCC.ViewModels.ClassManagers;
@@ -9,6 +10,9 @@ public class ReaperLayoutViewModel : BaseClassLayoutViewModel
     public SkillWithEffect ShroudedEscape { get; }
     public SkillWithEffect PowerlinkedDeathSpiral { get; }
     public SkillWithEffect PowerlinkedDoubleShear { get; }
+
+    protected override IEnumerable<SkillWithEffect> SpecialEffectSkills =>
+        [ShadowReaping, ShroudedEscape, PowerlinkedDeathSpiral, PowerlinkedDoubleShear];
 
     public ReaperLayoutViewModel()
     {

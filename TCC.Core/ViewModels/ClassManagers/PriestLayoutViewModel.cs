@@ -1,6 +1,7 @@
-﻿using TCC.Data;
+﻿using System.Collections.Generic;
 using TCC.Data.Abnormalities;
 using TCC.Data.Skills;
+using TCC.Data;
 using TeraDataLite;
 
 namespace TCC.ViewModels.ClassManagers;
@@ -12,6 +13,9 @@ public class PriestLayoutViewModel : BaseClassLayoutViewModel
     public SkillWithEffect EdictOfJudgment { get; }
     public SkillWithEffect DivineCharge { get; }
     public SkillWithEffect TripleNemesis { get; }
+
+    protected override IEnumerable<SkillWithEffect> SpecialEffectSkills =>
+        [EnergyStars, Grace, EdictOfJudgment, DivineCharge, TripleNemesis];
 
 
     public PriestLayoutViewModel()

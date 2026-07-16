@@ -1,5 +1,6 @@
-﻿using TCC.Data;
+﻿using System.Collections.Generic;
 using TCC.Data.Skills;
+using TCC.Data;
 using TeraDataLite;
 
 namespace TCC.ViewModels.ClassManagers;
@@ -11,6 +12,9 @@ public class ArcherLayoutViewModel : BaseClassLayoutViewModel
     public ArcherFocusTracker Focus { get; private set; }
     public Cooldown Thunderbolt { get; set; }
     public SkillWithEffect Windsong { get; set; }
+
+    protected override IEnumerable<SkillWithEffect> SpecialEffectSkills =>
+        [Windsong];
     public Cooldown WindWalk { get; set; }
 
     public bool WindWalkProc

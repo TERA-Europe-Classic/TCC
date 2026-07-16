@@ -1,7 +1,8 @@
-﻿using System;
+﻿using System.Collections.Generic;
+using System;
 using Nostrum;
-using TCC.Data;
 using TCC.Data.Skills;
+using TCC.Data;
 using TeraDataLite;
 
 namespace TCC.ViewModels.ClassManagers;
@@ -11,6 +12,9 @@ public class ValkyrieLayoutViewModel : BaseClassLayoutViewModel
     public Counter RunemarksCounter { get; set; }
     public SkillWithEffect Ragnarok { get; }
     public SkillWithEffect Godsfall { get; }
+
+    protected override IEnumerable<SkillWithEffect> SpecialEffectSkills =>
+        [Ragnarok, Godsfall];
 
     public bool ShowRagnarok => App.Settings.ClassWindowSettings.ValkyrieShowRagnarok;
     public bool ShowGodsfall => App.Settings.ClassWindowSettings.ValkyrieShowGodsfall;

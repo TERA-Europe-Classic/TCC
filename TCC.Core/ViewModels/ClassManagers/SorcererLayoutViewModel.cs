@@ -1,8 +1,8 @@
 ﻿using System.Collections.Generic;
 using System.Diagnostics;
-using TCC.Data;
 using TCC.Data.Abnormalities;
 using TCC.Data.Skills;
+using TCC.Data;
 using TeraDataLite;
 
 namespace TCC.ViewModels.ClassManagers;
@@ -18,6 +18,9 @@ public class SorcererLayoutViewModel : BaseClassLayoutViewModel
 
     public SkillWithEffect ManaBoost { get; set; }
     public SkillWithEffect BurstOfCelerity { get; set; }
+
+    protected override IEnumerable<SkillWithEffect> SpecialEffectSkills =>
+        [ManaBoost, BurstOfCelerity];
 
     public Cooldown Fusion { get; set; }
     public Skill PrimeFlame { get; set; }

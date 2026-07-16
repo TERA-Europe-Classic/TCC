@@ -1,4 +1,5 @@
-﻿//#define SCYTHES
+﻿using System.Collections.Generic;
+//#define SCYTHES
 
 using TCC.Data;
 using TCC.Data.Skills;
@@ -11,6 +12,9 @@ public class WarriorLayoutViewModel : BaseClassLayoutViewModel
     public SkillWithEffect DeadlyGamble { get; set; }
     public SkillWithEffect AdrenalineRush { get; set; }
     public SkillWithEffect Swift { get; set; }
+
+    protected override IEnumerable<SkillWithEffect> SpecialEffectSkills =>
+        [DeadlyGamble, AdrenalineRush, Swift];
     public StatTracker TraverseCut { get; set; }
     public Cooldown Infuriate { get; }
 

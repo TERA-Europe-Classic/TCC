@@ -1,5 +1,6 @@
-﻿using TCC.Data;
+﻿using System.Collections.Generic;
 using TCC.Data.Skills;
+using TCC.Data;
 using TeraDataLite;
 
 namespace TCC.ViewModels.ClassManagers;
@@ -11,6 +12,9 @@ public class GunnerLayoutViewModel : BaseClassLayoutViewModel
     public Cooldown Balder { get; }
     public Cooldown Bombardment { get; }
     public SkillWithEffect ModularSystem { get; }
+
+    protected override IEnumerable<SkillWithEffect> SpecialEffectSkills =>
+        [ModularSystem];
 
     public GunnerLayoutViewModel()
     {
