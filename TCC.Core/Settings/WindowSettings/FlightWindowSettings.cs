@@ -49,11 +49,5 @@ public class FlightWindowSettings : WindowSettingsBase
         Rotation = 0;
         Flip = false;
 
-        GpkNames.Add("ProgressBar");
-    }
-
-    protected override void OnEnabledChanged(bool enabled)
-    {
-        //TODO: add specific code
     }
 }

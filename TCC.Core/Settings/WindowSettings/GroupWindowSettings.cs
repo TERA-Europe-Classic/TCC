@@ -197,8 +197,6 @@ public class GroupWindowSettings : WindowSettingsBase
         HpLabelMode = GroupHpLabelMode.Percentage;
         Layout = GroupWindowLayout.RoleSeparated;
         
-        GpkNames.Add("PartyWindow");
-        GpkNames.Add("PartyWindowRaidInfo");
 
     }
 }

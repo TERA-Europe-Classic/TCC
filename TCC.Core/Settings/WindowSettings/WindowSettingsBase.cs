@@ -37,7 +37,6 @@ public class WindowSettingsBase : ThreadSafeObservableObject
     public event Action<bool>? VisibilityChanged;
 
     [JsonIgnore] public string Name { get; } = "";
-    [JsonIgnore] protected List<string> GpkNames { get; }
 
     [JsonIgnore]
     public bool ForcedClickable
@@ -221,8 +220,6 @@ public class WindowSettingsBase : ThreadSafeObservableObject
     public WindowSettingsBase()
     {
         Positions = new ClassPositions();
-        GpkNames = [];
-        EnabledChanged += OnEnabledChanged;
 
         ResetPositionCommand = new RelayCommand(_ => ResetToCenter?.Invoke());
         HideCommand = new RelayCommand(_ => Visible = false);
@@ -249,17 +246,6 @@ public class WindowSettingsBase : ThreadSafeObservableObject
         Positions = positions == null ?
             new ClassPositions(x, y, buttonsPosition) :
             new ClassPositions(positions);
-    }
-
-    protected virtual void OnEnabledChanged(bool enabled)
-    {
-        // do nothing for now
-        //if (GpkNames.Count == 0) return;
-        //if (!ProxyInterface.Instance.IsStubAvailable) return;
-        //foreach (var gpkName in GpkNames)
-        //{
-        //    ProxyInterface.Instance.Stub.InvokeCommand($"tcc-toggle-gpk {gpkName} {(enabled ? 0 : 1)}");
-        //}
     }
 
     protected WindowSettingsBase(WindowSettingsBase other) : this()

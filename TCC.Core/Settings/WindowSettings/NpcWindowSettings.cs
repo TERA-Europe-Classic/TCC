@@ -53,7 +53,5 @@ public class NpcWindowSettings : WindowSettingsBase
         AccurateHp = true;
         HideAdds = false;
 
-        GpkNames.Add("GageBoss");
-        GpkNames.Add("TargetInfo");
     }
 }

@@ -87,7 +87,6 @@ public class CharacterWindowSettings : WindowSettingsBase
         _customLaurel = CustomLaurel.Game;
         CompactMode = true;
         UndimOnFlyingGuardian = false;
-        GpkNames.Add("CharacterWindow");
         ChooseCustomLaurelCommand = new RelayCommand(ChooseCustomLaurel);
 
     }

@@ -64,7 +64,6 @@ public class BuffWindowSettings : WindowSettingsBase
         MyAbnormals = new Dictionary<Class, List<uint>>();
 
 
-        GpkNames.Add("Abnormality");
 
     }
 

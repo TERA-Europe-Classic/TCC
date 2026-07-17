@@ -4,29 +4,55 @@ namespace TCC.Tests;
 
 public class ModulePackagingTests
 {
+    /// The Classic+ launcher reads TCC's UI-remover payloads from
+    /// `<install>/client/gpk/x64/` — the publish rules must keep shipping
+    /// exactly that layout even though the toolbox JS module is gone.
     [Fact]
-    public void ModuleFilesArePublishedAtToolboxModuleRoot()
+    public void GpkPayloadsArePublishedAtClientGpkX64()
     {
         var project = XDocument.Load(Path.Combine(FindRepoRoot().FullName, "TCC.Core", "TCC.Core.csproj"));
-        var moduleContent = project
+        var gpkContent = project
             .Descendants("Content")
-            .Single(element => (string?)element.Attribute("Include") == @"Module\**\*.*");
+            .Single(element => (string?)element.Attribute("Include") == @"Module\client\gpk\x64\*.gpk");
 
-        Assert.Equal(@"%(RecursiveDir)%(Filename)%(Extension)", (string?)moduleContent.Attribute("Link"));
+        Assert.Equal(@"client\gpk\x64\%(Filename)%(Extension)", (string?)gpkContent.Attribute("Link"));
+        Assert.DoesNotContain(
+            project.Descendants("Content"),
+            element => (string?)element.Attribute("Include") == @"Module\**\*.*");
     }
 
-    [Fact]
-    public void LauncherExpectsRootTccExecutableAndRootGpkPayloads()
+    /// All eight Classic+ removers must exist as x64 payloads. The launcher's
+    /// remover reconcile sources each of these by filename.
+    [Theory]
+    [InlineData("S1UI_Abnormality.gpk")]
+    [InlineData("S1UI_CharacterWindow.gpk")]
+    [InlineData("S1UI_DistributionWindow.gpk")]
+    [InlineData("S1UI_GageBoss.gpk")]
+    [InlineData("S1UI_PartyWindow.gpk")]
+    [InlineData("S1UI_PartyWindowRaidInfo.gpk")]
+    [InlineData("S1UI_ProgressBar.gpk")]
+    [InlineData("S1UI_TargetInfo.gpk")]
+    public void ClassicPlusShipsAllX64RemoverPayloads(string fileName)
     {
-        var launcher = File.ReadAllText(Path.Combine(
-            FindRepoRoot().FullName,
-            "TCC.Core",
-            "Module",
-            "client",
-            "tcc-launcher.js"));
+        var payload = Path.Combine(
+            FindRepoRoot().FullName, "TCC.Core", "Module", "client", "gpk", "x64", fileName);
 
-        Assert.Contains("Path.join(__dirname, \"../TCC.exe\")", launcher);
-        Assert.Contains("installer.gpk(`client/gpk/${arch}/${removerGpkName}`)", launcher);
+        Assert.True(File.Exists(payload), $"missing launcher remover payload: {payload}");
+    }
+
+    /// The tera-toolbox module (JS loader, network stub, x86 payloads) is
+    /// dead in Classic+ — the launcher owns GPK deployment and spawns
+    /// TCC.exe directly. Only the x64 remover payloads remain under Module/.
+    [Fact]
+    public void ClassicPlusDoesNotShipToolboxModuleCode()
+    {
+        var moduleRoot = Path.Combine(FindRepoRoot().FullName, "TCC.Core", "Module");
+
+        Assert.Empty(Directory.GetFiles(moduleRoot, "*.js", SearchOption.AllDirectories));
+        Assert.Empty(Directory.GetFiles(moduleRoot, "*.json", SearchOption.AllDirectories));
+        Assert.False(
+            Directory.Exists(Path.Combine(moduleRoot, "client", "gpk", "x86")),
+            "x86 remover payloads have no consumer (launcher uses x64; toolbox path removed)");
     }
 
     [Theory]
@@ -39,67 +65,6 @@ public class ModulePackagingTests
         var files = Directory.GetFiles(moduleRoot, fileName, SearchOption.AllDirectories);
 
         Assert.Empty(files);
-    }
-
-    [Fact]
-    public void LauncherDoesNotInstallDeadChatOrLfgRemovers()
-    {
-        var launcher = File.ReadAllText(Path.Combine(
-            FindRepoRoot().FullName,
-            "TCC.Core",
-            "Module",
-            "client",
-            "tcc-launcher.js"));
-
-        Assert.DoesNotContain("S1UI_Chat2.gpk", launcher);
-        Assert.DoesNotContain("S1UI_PartyBoard.gpk", launcher);
-        Assert.DoesNotContain("S1UI_PartyBoardMemberInfo.gpk", launcher);
-        Assert.DoesNotContain("ChatEnabled", launcher);
-        Assert.DoesNotContain("LfgWindowSettings", launcher);
-    }
-
-    [Fact]
-    public void NetworkStubDoesNotSendFakeChatOrBlockLfg()
-    {
-        var stub = File.ReadAllText(Path.Combine(
-            FindRepoRoot().FullName,
-            "TCC.Core",
-            "Module",
-            "network",
-            "tcc-stub.js"));
-
-        Assert.DoesNotContain("S_SHOW_PARTY_MATCH_INFO", stub);
-        Assert.DoesNotContain("S_PARTY_MEMBER_INFO", stub);
-        Assert.DoesNotContain("S_SHOW_CANDIDATE_LIST", stub);
-        Assert.DoesNotContain("S_CHAT", stub);
-        Assert.DoesNotContain("S_WHISPER", stub);
-        Assert.DoesNotContain("S_PRIVATE_CHAT", stub);
-        Assert.DoesNotContain("notifyShowIngameChatChanged", stub);
-        Assert.DoesNotContain("TccChatEnabled", stub);
-        Assert.DoesNotContain("useLfg", stub);
-    }
-
-    [Fact]
-    public void GlobalRpcDoesNotExposeDeadChatOrLfgPacketActions()
-    {
-        var rpc = File.ReadAllText(Path.Combine(
-            FindRepoRoot().FullName,
-            "TCC.Core",
-            "Module",
-            "global",
-            "lib",
-            "rpc-handler.js"));
-
-        Assert.DoesNotContain("chatLinkAction", rpc);
-        Assert.DoesNotContain("C_APPLY_PARTY", rpc);
-        Assert.DoesNotContain("C_REQUEST_PARTY_MATCH", rpc);
-        Assert.DoesNotContain("C_REGISTER_PARTY_INFO", rpc);
-        Assert.DoesNotContain("C_UNREGISTER_PARTY_INFO", rpc);
-        Assert.DoesNotContain("C_PARTY_APPLICATION_DENIED", rpc);
-        Assert.DoesNotContain("C_REQUEST_CANDIDATE_LIST", rpc);
-        Assert.DoesNotContain("ShowIngameChat", rpc);
-        Assert.DoesNotContain("TccChatEnabled", rpc);
-        Assert.DoesNotContain("useLfg", rpc);
     }
 
     [Fact]
