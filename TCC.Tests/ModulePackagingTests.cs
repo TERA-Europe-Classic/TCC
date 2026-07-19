@@ -125,6 +125,25 @@ public class ModulePackagingTests
         Assert.DoesNotContain("RequestListingCandidates", user);
     }
 
+    /// TCC must run at the same integrity level as the Classic+ launcher.
+    /// Under `requireAdministrator` TCC runs elevated while the launcher does
+    /// not, so Windows UIPI drops the launcher's `TCC.ClassicPlus.RequestClose`
+    /// broadcast and denies `OpenProcess(PROCESS_TERMINATE)` — TCC then
+    /// outlives the game client. ShinraMeter ships no elevation request, which
+    /// is why it closes with the game and TCC did not.
+    [Fact]
+    public void TccRunsAtTheSameIntegrityLevelAsTheLauncher()
+    {
+        var manifest = XDocument.Load(
+            Path.Combine(FindRepoRoot().FullName, "TCC.Core", "TCC.exe.manifest"));
+        var level = manifest
+            .Descendants()
+            .Single(element => element.Name.LocalName == "requestedExecutionLevel")
+            .Attribute("level");
+
+        Assert.Equal("asInvoker", (string?)level);
+    }
+
     private static DirectoryInfo FindRepoRoot()
     {
         var current = new DirectoryInfo(AppContext.BaseDirectory);

@@ -4,7 +4,13 @@
   <trustInfo xmlns="urn:schemas-microsoft-com:asm.v2">
     <security>
       <requestedPrivileges xmlns="urn:schemas-microsoft-com:asm.v3">
-        <requestedExecutionLevel level="requireAdministrator" uiAccess="false" />
+        <!-- asInvoker, not requireAdministrator: elevation was needed by the
+             upstream pcap sniffer, which Classic+ replaced with a loopback
+             socket (ClassicPlusSniffer, 127.0.0.1:7803). Running elevated puts
+             TCC above the launcher's integrity level, where UIPI blocks the
+             launcher's shutdown message and process termination, so TCC
+             outlives the game client. -->
+        <requestedExecutionLevel level="asInvoker" uiAccess="false" />
       </requestedPrivileges>
     </security>
   </trustInfo>
