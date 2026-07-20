@@ -173,6 +173,7 @@ public partial class App
         await WindowManager.Init();
         SplashScreen.VM.Progress = 60;
         StartDispatcherWatcher();
+        StartGameLifetimeWatcher();
 
         // ----------------------------
         SplashScreen.VM.Progress = 70;
@@ -324,6 +325,30 @@ public partial class App
         }
 
         //Log.CW("All dispatchers shut down.");
+    }
+
+    /// Closes TCC when the game client exits. The Classic+ launcher also
+    /// tries to do this, but only while it is still running and only when
+    /// its own view of the game lifecycle says the last client is gone —
+    /// so TCC could outlive the client and had to be closed by hand.
+    private static void StartGameLifetimeWatcher()
+    {
+        const int intervalMs = 2000;
+
+        // Close() disposes widgets, so it has to run on the UI thread —
+        // the tray-icon path reaches it from a WndProc.
+        var watcher = new GameLifetimeWatcher(
+            () => BaseDispatcher.InvokeAsync(Utils.Utilities.RequestClose));
+
+        new Thread(() =>
+            {
+                while (_running)
+                {
+                    watcher.Tick();
+                    Thread.Sleep(intervalMs);
+                }
+            })
+        { Name = "GameLifetime", IsBackground = true }.Start();
     }
 
     private static void StartDispatcherWatcher()
