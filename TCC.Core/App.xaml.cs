@@ -173,7 +173,6 @@ public partial class App
         await WindowManager.Init();
         SplashScreen.VM.Progress = 60;
         StartDispatcherWatcher();
-        StartGameLifetimeWatcher();
 
         // ----------------------------
         SplashScreen.VM.Progress = 70;
@@ -188,6 +187,8 @@ public partial class App
             ? "EU-EN"
             : Settings.LastLanguage);
         await PacketAnalyzer.InitAsync(Settings.CaptureMode, ToolboxMode);
+        // After InitAsync — PacketAnalyzer.Sniffer is null until then.
+        StartGameLifetimeWatcher();
         _ = StubInterface.Instance.InitAsync(false,
             Settings.EnablePlayerMenu,
             Settings.EnableProxy,
@@ -331,24 +332,20 @@ public partial class App
     /// tries to do this, but only while it is still running and only when
     /// its own view of the game lifecycle says the last client is gone —
     /// so TCC could outlive the client and had to be closed by hand.
+    ///
+    /// Costs nothing while the game runs: it waits on the client process's
+    /// exit signal instead of polling. Attach is attempted once here (TCC
+    /// may be started after the client) and again whenever the sniffer
+    /// reports a connection, which proves the client is up.
     private static void StartGameLifetimeWatcher()
     {
-        const int intervalMs = 2000;
-
         // Close() disposes widgets, so it has to run on the UI thread —
         // the tray-icon path reaches it from a WndProc.
         var watcher = new GameLifetimeWatcher(
             () => BaseDispatcher.InvokeAsync(Utils.Utilities.RequestClose));
 
-        new Thread(() =>
-            {
-                while (_running)
-                {
-                    watcher.Tick();
-                    Thread.Sleep(intervalMs);
-                }
-            })
-        { Name = "GameLifetime", IsBackground = true }.Start();
+        watcher.TryAttach();
+        PacketAnalyzer.Sniffer.NewConnection += _ => watcher.TryAttach();
     }
 
     private static void StartDispatcherWatcher()

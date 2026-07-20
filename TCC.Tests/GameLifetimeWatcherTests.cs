@@ -2,87 +2,95 @@ using TCC.Utilities;
 
 namespace TCC.Tests;
 
-/// TCC is a game overlay — it has no purpose once the client is gone, and
-/// the Classic+ launcher's teardown does not reliably reach it. The watcher
-/// makes TCC close itself, independent of who started it.
+/// TCC is a game overlay — it has no purpose once the client is gone.
+/// The watcher subscribes to the client process's exit signal rather than
+/// polling for it, so it costs nothing while the game is running.
 public class GameLifetimeWatcherTests
 {
-    private static GameLifetimeWatcher Watcher(Func<bool> probe, Action onClose)
+    /// Stand-in for a live client process.
+    private sealed class FakeExitSignal : IGameExitSignal
     {
-        return new GameLifetimeWatcher(probe, onClose);
+        public event Action? Exited;
+        public int SubscriberCount => Exited?.GetInvocationList().Length ?? 0;
+        public void FireExit() => Exited?.Invoke();
     }
 
     [Fact]
-    public void DoesNotCloseBeforeTheGameHasEverAppeared()
+    public void DoesNotCloseWhenTheGameIsNotRunning()
     {
         // TCC is routinely started before the client — auto_launch fires at
-        // launch time, and users open it from the tray while patching. It
-        // must sit and wait, not exit immediately.
+        // launch time, and users open it from the tray while patching.
         var closed = false;
-        var watcher = Watcher(() => false, () => closed = true);
+        var watcher = new GameLifetimeWatcher(() => null, () => closed = true);
 
-        for (var i = 0; i < 10; i++) watcher.Tick();
+        watcher.TryAttach();
 
         Assert.False(closed);
+        Assert.False(watcher.IsAttached);
     }
 
     [Fact]
-    public void DoesNotCloseWhileTheGameIsRunning()
+    public void ClosesWhenTheAttachedClientExits()
     {
         var closed = false;
-        var watcher = Watcher(() => true, () => closed = true);
+        var signal = new FakeExitSignal();
+        var watcher = new GameLifetimeWatcher(() => signal, () => closed = true);
 
-        for (var i = 0; i < 10; i++) watcher.Tick();
-
-        Assert.False(closed);
-    }
-
-    [Fact]
-    public void ClosesOnceTheGameDisappears()
-    {
-        var closed = false;
-        var running = false;
-        var watcher = Watcher(() => running, () => closed = true);
-
-        watcher.Tick();          // before launch
-        running = true;
-        watcher.Tick();          // client up
+        watcher.TryAttach();
+        Assert.True(watcher.IsAttached);
         Assert.False(closed);
 
-        running = false;
-        watcher.Tick();          // client closed
+        signal.FireExit();
 
         Assert.True(closed);
     }
 
     [Fact]
+    public void AttachesOnlyOnce()
+    {
+        // TryAttach is called at startup and again on every new game
+        // connection — a server restart reconnects. Re-subscribing each
+        // time would fire RequestClose once per subscription.
+        var signal = new FakeExitSignal();
+        var watcher = new GameLifetimeWatcher(() => signal, () => { });
+
+        watcher.TryAttach();
+        watcher.TryAttach();
+        watcher.TryAttach();
+
+        Assert.Equal(1, signal.SubscriberCount);
+    }
+
+    [Fact]
     public void RequestsCloseOnlyOnce()
     {
-        // RequestClose runs TCC's full shutdown path; firing it repeatedly
-        // while the app winds down would re-enter that path.
+        // RequestClose runs TCC's full shutdown path; re-entering it while
+        // the app winds down would tear down disposed state twice.
         var closeCount = 0;
-        var running = true;
-        var watcher = Watcher(() => running, () => closeCount++);
+        var signal = new FakeExitSignal();
+        var watcher = new GameLifetimeWatcher(() => signal, () => closeCount++);
 
-        watcher.Tick();
-        running = false;
-        for (var i = 0; i < 5; i++) watcher.Tick();
+        watcher.TryAttach();
+        signal.FireExit();
+        signal.FireExit();
 
         Assert.Equal(1, closeCount);
     }
 
     [Fact]
-    public void SurvivesAProbeThatThrows()
+    public void SurvivesAnAttachThatThrows()
     {
-        // Process enumeration can throw transiently (access denied on a
-        // process exiting mid-enumeration). A throwing probe must not kill
-        // the timer thread or trigger a spurious close.
+        // Opening a process can throw transiently (it exits between
+        // enumeration and handle open). That must not kill the caller or
+        // count as "the game is gone".
         var closed = false;
-        var watcher = Watcher(() => throw new InvalidOperationException("probe blew up"),
-                              () => closed = true);
+        var watcher = new GameLifetimeWatcher(
+            () => throw new InvalidOperationException("open blew up"),
+            () => closed = true);
 
-        watcher.Tick();
+        watcher.TryAttach();
 
         Assert.False(closed);
+        Assert.False(watcher.IsAttached);
     }
 }
