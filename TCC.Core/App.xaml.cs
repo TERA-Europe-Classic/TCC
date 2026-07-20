@@ -333,12 +333,20 @@ public partial class App
     /// its own view of the game lifecycle says the last client is gone —
     /// so TCC could outlive the client and had to be closed by hand.
     ///
-    /// Costs nothing while the game runs: it waits on the client process's
-    /// exit signal instead of polling. Attach is attempted once here (TCC
-    /// may be started after the client) and again whenever the sniffer
-    /// reports a connection, which proves the client is up.
+    /// Costs nothing while the game runs: once attached it waits on the
+    /// client process's exit signal, which is kernel-signalled, and does no
+    /// periodic work at all.
+    ///
+    /// Finding the client in the first place needs discovery, because TCC
+    /// is usually auto-launched alongside the client and wins the race.
+    /// Two triggers, both one-shot: a sniffer connection proves the client
+    /// is up, and a retry timer covers the case where TCC never connects.
+    /// The timer stops permanently the moment it attaches — it is startup
+    /// discovery, not a background poll.
     private static void StartGameLifetimeWatcher()
     {
+        const int discoveryIntervalMs = 3000;
+
         // Close() disposes widgets, so it has to run on the UI thread —
         // the tray-icon path reaches it from a WndProc.
         var watcher = new GameLifetimeWatcher(
@@ -346,6 +354,21 @@ public partial class App
 
         watcher.TryAttach();
         PacketAnalyzer.Sniffer.NewConnection += _ => watcher.TryAttach();
+
+        if (watcher.IsAttached) return;
+
+        Timer? discovery = null;
+        discovery = new Timer(_ =>
+        {
+            if (!_running)
+            {
+                discovery?.Dispose();
+                return;
+            }
+
+            watcher.TryAttach();
+            if (watcher.IsAttached) discovery?.Dispose();
+        }, null, discoveryIntervalMs, discoveryIntervalMs);
     }
 
     private static void StartDispatcherWatcher()
